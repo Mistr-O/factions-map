@@ -25,12 +25,58 @@ html, body {
 }
 
 #map {
-  width: 100%;
+  position: absolute;
+  left: 260px;
+  top: 0;
+  width: calc(100% - 260px);
   height: 100%;
   background:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 50px 50px;
+}
+
+#sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100%;
+  background: #111;
+  border-right: 1px solid #222;
+  overflow-y: auto;
+  color: white;
+  z-index: 99999;
+}
+
+#sidebar h2 {
+  margin: 0;
+  padding: 15px;
+  background: #161616;
+  border-bottom: 1px solid #222;
+  font-size: 18px;
+}
+
+.player-entry {
+  padding: 10px;
+  border-bottom: 1px solid #222;
+  cursor: pointer;
+}
+
+.player-entry:hover {
+  background: #1d1d1d;
+}
+
+.player-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+}
+
+.player-coords {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 4px;
 }
 
 .player-label {
@@ -46,7 +92,7 @@ html, body {
 #topbar {
   position: fixed;
   top: 10px;
-  left: 10px;
+  right: 10px;
   z-index: 99999;
   background: rgba(0,0,0,0.75);
   color: white;
@@ -60,8 +106,13 @@ html, body {
 
 <body>
 
+<div id="sidebar">
+  <h2>Players</h2>
+  <div id="playerList"></div>
+</div>
+
 <div id="topbar">
-  Players Online:
+  Online:
   <span id="count">0</span>
 </div>
 
@@ -93,6 +144,11 @@ async function loadPlayers() {
     document.getElementById("count").innerText =
       data.players.length;
 
+    const playerList =
+      document.getElementById("playerList");
+
+    playerList.innerHTML = "";
+
     const currentUsers = new Set();
 
     data.players.forEach(player => {
@@ -103,10 +159,37 @@ async function loadPlayers() {
 
       const pos = player.Pose.Head.Position;
 
+      const worldX = Math.round(pos[0]);
+      const worldY = Math.round(pos[1]);
+      const worldZ = Math.round(pos[2]);
+
       const x = pos[0] * SCALE;
       const z = pos[2] * SCALE;
 
       const latlng = [z, x];
+
+      // PLAYER LIST ENTRY
+      const entry = document.createElement("div");
+
+      entry.className = "player-entry";
+
+      entry.innerHTML = `
+        <div class="player-name">
+          ${username}
+        </div>
+
+        <div class="player-coords">
+          X: ${worldX}<br>
+          Y: ${worldY}<br>
+          Z: ${worldZ}
+        </div>
+      `;
+
+      entry.onclick = () => {
+        map.setView(latlng, 2);
+      };
+
+      playerList.appendChild(entry);
 
       // CREATE NEW MARKER
       if (!markers[username]) {
@@ -122,7 +205,14 @@ async function loadPlayers() {
         ).addTo(map);
 
         marker.bindTooltip(
-          username,
+          `
+          <div>
+            ${username}<br>
+            X: ${worldX}<br>
+            Y: ${worldY}<br>
+            Z: ${worldZ}
+          </div>
+          `,
           {
             permanent: true,
             direction: "top",
@@ -131,11 +221,21 @@ async function loadPlayers() {
           }
         );
 
+        marker.bindPopup(`
+          <b>${username}</b><br><br>
+
+          X: ${worldX}<br>
+          Y: ${worldY}<br>
+          Z: ${worldZ}<br><br>
+
+          Ping:
+          ${Math.round(player.ping)}
+        `);
+
         markers[username] = marker;
 
       } else {
 
-        // MOVE EXISTING MARKER
         markers[username].setLatLng(latlng);
 
       }
