@@ -1,159 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>FactionsVR Tracker</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<title>FactionsVR Tracker</title>
 
-  <style>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 
-    html, body, #map {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: black;
-      font-family: Arial;
-    }
+<style>
 
-    #map {
-      background: black;
-    }
+html, body, #map{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#000;
+  font-family:Arial,Helvetica,sans-serif;
+}
 
-    .leaflet-container {
-      background: black !important;
-    }
+.leaflet-container{
+  background:#000 !important;
+}
 
-    /* SIDEBAR */
+/* SIDEBAR */
 
-    #sidebar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 340px;
-      height: calc(100vh - 20px);
-      background: rgba(10,10,10,0.92);
-      backdrop-filter: blur(12px);
-      border-radius: 14px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
+#sidebar{
+  position:absolute;
+  left:14px;
+  top:14px;
+  width:360px;
+  height:calc(100vh - 28px);
+  background:rgba(8,8,8,.92);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  backdrop-filter:blur(14px);
+  overflow:hidden;
+}
 
-    #title {
-      color: white;
-      font-size: 24px;
-      font-weight: bold;
-      padding: 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
+/* HEADER */
 
-    #search {
-      margin: 12px;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.06);
-      color: white;
-      outline: none;
-    }
+#header{
+  padding:20px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
 
-    #players {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
-    }
+#title{
+  color:white;
+  font-size:26px;
+  font-weight:700;
+}
 
-    .player {
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      color: white;
-      border: 1px solid rgba(255,255,255,0.03);
-      transition: 0.2s;
-    }
+#subtitle{
+  margin-top:4px;
+  color:#888;
+  font-size:13px;
+}
 
-    .player:hover {
-      background: rgba(255,255,255,0.08);
-    }
+/* SEARCH */
 
-    .offline {
-      opacity: 0.4;
-    }
+#searchWrap{
+  padding:14px;
+}
 
-    .name {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
+#search{
+  width:100%;
+  box-sizing:border-box;
+  border:none;
+  outline:none;
+  padding:14px;
+  border-radius:12px;
+  background:rgba(255,255,255,.05);
+  color:white;
+  font-size:14px;
+}
 
-    .coords {
-      font-size: 13px;
-      color: #d0d0d0;
-      margin-top: 4px;
-    }
+/* PLAYERS */
 
-    .buttons {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+#players{
+  flex:1;
+  overflow-y:auto;
+  padding:0 14px 14px 14px;
+}
 
-    button {
-      border: none;
-      border-radius: 8px;
-      padding: 7px 10px;
-      cursor: pointer;
-      background: #e53935;
-      color: white;
-      font-size: 12px;
-    }
+.player{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  transition:.15s;
+}
 
-    button:hover {
-      opacity: 0.9;
-    }
+.player:hover{
+  background:rgba(255,255,255,.07);
+}
 
-    #coords-box {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: rgba(15,15,15,0.95);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
-      z-index: 9999;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
+.offline{
+  opacity:.45;
+}
 
-    #topbar {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 9999;
-      display: flex;
-      gap: 10px;
-    }
+.playerTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-    #topbar button {
-      background: rgba(20,20,20,0.95);
-      padding: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
+.playerName{
+  color:white;
+  font-size:16px;
+  font-weight:700;
+}
 
-    .leaflet-tooltip {
-      background: transparent !important;
-      border: none !important;
-      color: white !important;
-      font-weight: bold;
-      text-shadow: 0 0 5px black;
-      box-shadow: none !important;
-    }
+.status{
+  font-size:13px;
+}
 
-  </style>
+.onlineStatus{
+  color:#5cff84;
+}
+
+.offlineStatus{
+  color:#999;
+}
+
+.coords{
+  margin-top:10px;
+  color:#bbb;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.home{
+  margin-top:10px;
+  color:#ff7676;
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* BUTTONS */
+
+.buttons{
+  display:flex;
+  gap:8px;
+  margin-top:14px;
+  flex-wrap:wrap;
+}
+
+button{
+  border:none;
+  outline:none;
+  border-radius:10px;
+  padding:10px 12px;
+  cursor:pointer;
+  color:white;
+  background:#d63031;
+  transition:.15s;
+  font-size:12px;
+  font-weight:700;
+}
+
+button:hover{
+  transform:translateY(-1px);
+  opacity:.92;
+}
+
+.secondary{
+  background:#222;
+}
+
+/* TOP RIGHT */
+
+#topbar{
+  position:absolute;
+  right:14px;
+  top:14px;
+  z-index:9999;
+  display:flex;
+  gap:10px;
+}
+
+/* COORDS */
+
+#coordsBox{
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  z-index:9999;
+  background:rgba(10,10,10,.94);
+  border:1px solid rgba(255,255,255,.05);
+  color:white;
+  padding:14px 18px;
+  border-radius:14px;
+  font-size:14px;
+  backdrop-filter:blur(10px);
+}
+
+/* TOOLTIPS */
+
+.leaflet-tooltip{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  color:white !important;
+  font-weight:700;
+  text-shadow:0 0 10px black;
+}
+
+/* SCROLLBAR */
+
+::-webkit-scrollbar{
+  width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#333;
+  border-radius:10px;
+}
+
+</style>
 </head>
 
 <body>
@@ -162,22 +234,34 @@
 
 <div id="sidebar">
 
-  <div id="title">
-    FactionsVR Tracker
+  <div id="header">
+    <div id="title">FactionsVR</div>
+    <div id="subtitle">
+      Live Player Tracker
+    </div>
   </div>
 
-  <input id="search" placeholder="Search players...">
+  <div id="searchWrap">
+    <input id="search" placeholder="Search players...">
+  </div>
 
   <div id="players"></div>
 
 </div>
 
 <div id="topbar">
-  <button id="toggleHeat">Heat Map</button>
-  <button id="resetView">Reset View</button>
+
+  <button id="heatBtn">
+    Heat Map
+  </button>
+
+  <button id="resetBtn" class="secondary">
+    Reset View
+  </button>
+
 </div>
 
-<div id="coords-box">
+<div id="coordsBox">
   X: 0 | Z: 0
 </div>
 
@@ -185,25 +269,22 @@
 
 <script>
 
-const map = L.map('map', {
-  crs: L.CRS.Simple,
-  minZoom: -10,
-  maxZoom: 12,
-  zoomSnap: 0.25,
-  zoomDelta: 0.25,
-  wheelPxPerZoomLevel: 60,
-  attributionControl: false
-}).setView([0,0], 0);
+/* MAP */
 
-map.scrollWheelZoom.enable();
-map.doubleClickZoom.enable();
-map.touchZoom.enable();
-map.boxZoom.enable();
-map.keyboard.enable();
+const map = L.map("map",{
+  crs:L.CRS.Simple,
+  minZoom:-10,
+  maxZoom:12,
+  zoomSnap:.25,
+  zoomDelta:.25,
+  attributionControl:false
+}).setView([0,0],0);
+
+/* GRID */
 
 const gridLayer = L.layerGroup().addTo(map);
 
-function drawGrid() {
+function drawGrid(){
 
   gridLayer.clearLayers();
 
@@ -211,47 +292,49 @@ function drawGrid() {
 
   let size = 100;
 
-  if (zoom <= -2) size = 500;
-  if (zoom <= -4) size = 1000;
-  if (zoom <= -6) size = 2500;
-  if (zoom <= -8) size = 5000;
+  if(zoom <= -2) size = 500;
+  if(zoom <= -4) size = 1000;
+  if(zoom <= -6) size = 2500;
+  if(zoom <= -8) size = 5000;
 
-  const bounds = map.getBounds();
+  const b = map.getBounds();
 
-  const minX = Math.floor(bounds.getWest() / size) * size;
-  const maxX = Math.ceil(bounds.getEast() / size) * size;
+  const minX = Math.floor(b.getWest()/size)*size;
+  const maxX = Math.ceil(b.getEast()/size)*size;
 
-  const minY = Math.floor(bounds.getSouth() / size) * size;
-  const maxY = Math.ceil(bounds.getNorth() / size) * size;
+  const minY = Math.floor(b.getSouth()/size)*size;
+  const maxY = Math.ceil(b.getNorth()/size)*size;
 
-  for (let x = minX; x <= maxX; x += size) {
+  for(let x=minX;x<=maxX;x+=size){
 
     L.polyline([
-      [minY, x],
-      [maxY, x]
-    ], {
-      color: "rgba(255,255,255,0.12)",
-      weight: 1,
-      interactive: false
+      [minY,x],
+      [maxY,x]
+    ],{
+      color:"rgba(255,255,255,.08)",
+      weight:1,
+      interactive:false
     }).addTo(gridLayer);
   }
 
-  for (let y = minY; y <= maxY; y += size) {
+  for(let y=minY;y<=maxY;y+=size){
 
     L.polyline([
-      [y, minX],
-      [y, maxX]
-    ], {
-      color: "rgba(255,255,255,0.12)",
-      weight: 1,
-      interactive: false
+      [y,minX],
+      [y,maxX]
+    ],{
+      color:"rgba(255,255,255,.08)",
+      weight:1,
+      interactive:false
     }).addTo(gridLayer);
   }
 }
 
-map.on("move zoom", drawGrid);
+map.on("zoom move",drawGrid);
 
 drawGrid();
+
+/* DATA */
 
 const markers = {};
 const heatLayers = [];
@@ -259,9 +342,13 @@ const heatLayers = [];
 let heatEnabled = false;
 
 const knownPlayers =
-  JSON.parse(localStorage.getItem("knownPlayers") || "{}");
+JSON.parse(
+  localStorage.getItem("knownPlayers") || "{}"
+);
 
-function savePlayers() {
+/* SAVE */
+
+function savePlayers(){
 
   localStorage.setItem(
     "knownPlayers",
@@ -269,184 +356,223 @@ function savePlayers() {
   );
 }
 
-function copy(text) {
+/* COPY */
+
+function copy(text){
 
   navigator.clipboard.writeText(text);
 }
 
-map.on("mousemove", e => {
+/* COORDS */
 
-  document.getElementById("coords-box").innerText =
+map.on("mousemove",e=>{
+
+  document.getElementById("coordsBox").innerText =
     `X: ${Math.floor(e.latlng.lng)} | Z: ${Math.floor(-e.latlng.lat)}`;
 });
 
-function addHeat(lat, lng) {
+/* HEAT */
 
-  if (!heatEnabled) return;
+function addHeat(lat,lng){
 
-  const heat = L.circleMarker([lat, lng], {
-    radius: 24,
-    color: "red",
-    fillColor: "red",
-    fillOpacity: 0.05,
-    stroke: false
+  if(!heatEnabled) return;
+
+  const h = L.circleMarker([lat,lng],{
+    radius:26,
+    color:"red",
+    fillColor:"red",
+    fillOpacity:.04,
+    stroke:false
   }).addTo(map);
 
-  heatLayers.push(heat);
+  heatLayers.push(h);
 }
 
-function clearHeat() {
+function clearHeat(){
 
-  heatLayers.forEach(h => map.removeLayer(h));
+  heatLayers.forEach(h=>map.removeLayer(h));
 
   heatLayers.length = 0;
 }
 
-document.getElementById("toggleHeat").onclick = () => {
+document.getElementById("heatBtn").onclick = ()=>{
 
   heatEnabled = !heatEnabled;
 
-  if (heatEnabled) {
+  if(heatEnabled){
 
-    Object.values(knownPlayers).forEach(p => {
+    Object.values(knownPlayers).forEach(p=>{
 
-      addHeat(p.lat, p.lng);
+      addHeat(p.lat,p.lng);
     });
 
-  } else {
+  }else{
 
     clearHeat();
   }
 };
 
-document.getElementById("resetView").onclick = () => {
+/* RESET */
 
-  map.setView([0,0], 0);
+document.getElementById("resetBtn").onclick = ()=>{
+
+  map.setView([0,0],0);
 };
 
-async function load() {
+/* LIKELY HOME */
 
-  try {
+function getLikelyHome(history){
+
+  if(!history || history.length < 5) return null;
+
+  const teleports = {};
+
+  for(let i=1;i<history.length;i++){
+
+    const prev = history[i-1];
+    const curr = history[i];
+
+    const dist = Math.hypot(
+      curr.lng - prev.lng,
+      curr.lat - prev.lat
+    );
+
+    if(dist > 500){
+
+      const tx =
+      Math.round(curr.lng/50)*50;
+
+      const tz =
+      Math.round(curr.lat/50)*50;
+
+      const key = `${tx}:${tz}`;
+
+      teleports[key] =
+      (teleports[key] || 0) + 1;
+    }
+  }
+
+  let best = null;
+  let max = 0;
+
+  for(const key in teleports){
+
+    if(teleports[key] > max){
+
+      max = teleports[key];
+      best = key;
+    }
+  }
+
+  if(!best) return null;
+
+  const [x,z] =
+  best.split(":").map(Number);
+
+  return {
+    x,
+    z:-z
+  };
+}
+
+/* LOAD */
+
+async function loadPlayers(){
+
+  try{
 
     const r =
-      await fetch("https://factions-map.onrender.com/players");
+    await fetch(
+      "https://factions-map.onrender.com/players"
+    );
 
     const data = await r.json();
 
     const online = {};
 
-    data.players.forEach(p => {
+    data.players.forEach(p=>{
 
-      const x = Math.floor(p.Pose.Head.Position[0]);
-      const y = Math.floor(p.Pose.Head.Position[1]);
-      const z = Math.floor(p.Pose.Head.Position[2]);
+      const x =
+      Math.floor(
+        p.Pose.Head.Position[0]
+      );
+
+      const y =
+      Math.floor(
+        p.Pose.Head.Position[1]
+      );
+
+      const z =
+      Math.floor(
+        p.Pose.Head.Position[2]
+      );
 
       const lat = -z;
       const lng = x;
 
       online[p.Username] = true;
 
-      if (!knownPlayers[p.Username]) {
+      if(!knownPlayers[p.Username]){
 
         knownPlayers[p.Username] = {
-          history: [],
-          teleports: []
+          history:[]
         };
       }
 
-      const old = knownPlayers[p.Username];
+      const player =
+      knownPlayers[p.Username];
 
-      if (old.x !== undefined) {
+      player.x = x;
+      player.y = y;
+      player.z = z;
+      player.lat = lat;
+      player.lng = lng;
+      player.online = true;
 
-        const dist = Math.hypot(x - old.x, z - old.z);
+      player.history.push({
+        lat,
+        lng,
+        time:Date.now()
+      });
 
-        if (dist > 1500) {
+      if(player.history.length > 200){
 
-          old.teleports.push({
-            x,
-            z
-          });
-
-          if (old.teleports.length > 20) {
-            old.teleports.shift();
-          }
-
-          const counts = {};
-
-          old.teleports.forEach(t => {
-
-            const tx =
-              Math.round(t.x / 100) * 100;
-
-            const tz =
-              Math.round(t.z / 100) * 100;
-
-            const key = tx + ":" + tz;
-
-            counts[key] =
-              (counts[key] || 0) + 1;
-          });
-
-          let best = null;
-          let bestCount = 0;
-
-          Object.entries(counts).forEach(([k,v]) => {
-
-            if (v > bestCount) {
-
-              best = k;
-              bestCount = v;
-            }
-          });
-
-          if (best) {
-
-            const split = best.split(":");
-
-            old.homeX = split[0];
-            old.homeZ = split[1];
-          }
-        }
+        player.history.shift();
       }
 
-      old.x = x;
-      old.y = y;
-      old.z = z;
-      old.lat = lat;
-      old.lng = lng;
-      old.online = true;
+      addHeat(lat,lng);
 
-      addHeat(lat, lng);
+      if(!markers[p.Username]){
 
-      if (!markers[p.Username]) {
+        markers[p.Username] =
+        L.circleMarker([lat,lng],{
 
-        markers[p.Username] = L.circleMarker(
-          [lat,lng],
-          {
-            radius: 6,
-            color: "red",
-            fillColor: "red",
-            fillOpacity: 1
-          }
-        ).addTo(map);
+          radius:6,
+          color:"#ff3b3b",
+          fillColor:"#ff3b3b",
+          fillOpacity:1
+
+        }).addTo(map);
 
         markers[p.Username].bindTooltip(
           p.Username,
           {
-            permanent: true,
-            direction: "top"
+            permanent:true,
+            direction:"top"
           }
         );
 
-      } else {
+      }else{
 
-        markers[p.Username].setLatLng([lat,lng]);
+        markers[p.Username]
+        .setLatLng([lat,lng]);
       }
     });
 
-    Object.keys(knownPlayers).forEach(name => {
+    Object.keys(knownPlayers)
+    .forEach(name=>{
 
-      if (!online[name]) {
+      if(!online[name]){
 
         knownPlayers[name].online = false;
       }
@@ -456,122 +582,151 @@ async function load() {
 
     savePlayers();
 
-  } catch(err) {
+  }catch(err){
 
     console.log(err);
   }
 }
 
-function renderPlayers() {
+/* RENDER */
+
+function renderPlayers(){
 
   const wrap =
-    document.getElementById("players");
+  document.getElementById("players");
 
   const search =
-    document.getElementById("search")
-    .value
-    .toLowerCase();
+  document.getElementById("search")
+  .value
+  .toLowerCase();
 
   wrap.innerHTML = "";
 
   const sorted =
-    Object.entries(knownPlayers)
-    .sort((a,b)=>b[1].online-a[1].online);
+  Object.entries(knownPlayers)
+  .sort((a,b)=>
+    b[1].online-a[1].online
+  );
 
-  sorted.forEach(([name,p]) => {
+  sorted.forEach(([name,p])=>{
 
-    if (
-      !name.toLowerCase().includes(search)
+    if(
+      !name.toLowerCase()
+      .includes(search)
     ) return;
 
-    let likelyHome = "Unknown";
-
-    if (
-      p.homeX !== undefined &&
-      p.homeZ !== undefined
-    ) {
-
-      likelyHome =
-        `X: ${p.homeX} | Z: ${p.homeZ}`;
-    }
+    const home =
+    getLikelyHome(p.history);
 
     const div =
-      document.createElement("div");
+    document.createElement("div");
 
     div.className = "player";
 
-    if (!p.online)
+    if(!p.online){
+
       div.classList.add("offline");
+    }
 
     div.innerHTML = `
-      <div class="name">
-        ${name}
-        ${p.online ? "🟢" : "⚫"}
+
+      <div class="playerTop">
+
+        <div class="playerName">
+          ${name}
+        </div>
+
+        <div class="status ${
+          p.online
+          ? "onlineStatus"
+          : "offlineStatus"
+        }">
+
+          ${p.online
+            ? "ONLINE"
+            : "OFFLINE"
+          }
+
+        </div>
+
       </div>
 
       <div class="coords">
-        X: ${p.x}
-      </div>
 
-      <div class="coords">
-        Y: ${p.y}
-      </div>
-
-      <div class="coords">
+        X: ${p.x}<br>
+        Y: ${p.y}<br>
         Z: ${p.z}
+
       </div>
 
-      <div class="coords" style="margin-top:8px;color:#ff7272;">
-        🏠 Likely Home
-      </div>
+      <div class="home">
 
-      <div class="coords">
-        ${likelyHome}
+        🏠 Likely Home:<br>
+
+        ${
+          home
+          ? `X: ${home.x} | Z: ${home.z}`
+          : "Unknown"
+        }
+
       </div>
 
       <div class="buttons">
+
         <button class="tp">
           Copy TP
         </button>
 
-        <button class="home">
+        <button class="homeBtn">
           Copy Home
         </button>
 
-        <button class="view">
+        <button class="secondary view">
           View
         </button>
+
       </div>
     `;
 
-    div.querySelector(".tp").onclick = () => {
+    div.querySelector(".tp").onclick=()=>{
 
-      copy(`${p.x} ${p.y} ${p.z}`);
+      copy(
+        `${p.x} ${p.y} ${p.z}`
+      );
     };
 
-    div.querySelector(".home").onclick = () => {
+    div.querySelector(".homeBtn").onclick=()=>{
 
-      if (p.homeX !== undefined) {
+      if(home){
 
-        copy(`${p.homeX} ${p.homeZ}`);
+        copy(
+          `${home.x} ${home.z}`
+        );
       }
     };
 
-    div.querySelector(".view").onclick = () => {
+    div.querySelector(".view").onclick=()=>{
 
-      map.setView([p.lat,p.lng], 4);
+      map.setView(
+        [p.lat,p.lng],
+        4
+      );
     };
 
     wrap.appendChild(div);
   });
 }
 
-document.getElementById("search").oninput =
-  renderPlayers;
+/* SEARCH */
 
-setInterval(load, 3000);
+document.getElementById("search")
+.oninput = renderPlayers;
 
-load();
+/* LOOP */
+
+setInterval(loadPlayers,3000);
+
+loadPlayers();
 
 </script>
 
