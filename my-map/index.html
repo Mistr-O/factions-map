@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FactionsVR Live Map</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <style>
+    html, body, #map {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: Arial;
+    }
+
+    #map { z-index: 1; }
+
+    /* LOGIN */
+    #login-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    #login-box {
+      background: rgba(20,20,20,0.9);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: white;
+      width: 260px;
+    }
+
+    #login-box input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    #login-box button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: red;
+      color: white;
+      cursor: pointer;
+    }
+
+    #login-error {
+      color: #ff4d4d;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    /* SIDEBAR */
+    #player-list-container {
+      position: absolute;
+      top: 70px;
+      left: 10px;
+      z-index: 3000;
+      display: flex;
+    }
+
+    #player-list {
+      width: 320px;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: rgba(20,20,20,0.75);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 10px;
+      color: white;
+    }
+
+    #hide-sidebar {
+      margin-left: 6px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(20,20,20,0.8);
+      color: white;
+      cursor: pointer;
+    }
+
+    #search-box {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    /* PLAYER */
+    .player-item {
+      padding: 10px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      cursor: pointer;
+    }
+
+    .follow-btn {
+      margin-top: 5px;
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .home-copy {
+      margin-left: 6px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    .player-name-label {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px black;
+    }
+
+    /* FOLLOW */
+    #follow-bar {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20,20,20,0.85);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+      z-index: 4000;
+    }
+
+    #follow-name { color: #e74c3c; }
+
+    /* COORDS */
+    #coords {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      z-index: 3000;
+    }
+
+    /* TOAST */
+    #copy-toast {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: 0.2s;
+      z-index: 5000;
+    }
+
+    /* HEAT */
+    #heatmap-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5000;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #heatmap-panel {
+      position: absolute;
+      top: 55px;
+      right: 10px;
+      width: 180px;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+      z-index: 5000;
+    }
+
+    .heat-option {
+      margin-top: 8px;
+      padding: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #heat-close {
+      float: right;
+      background: red;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div id="login-box">
+    <h2>FactionsVR Map</h2>
+    <input id="password" type="password" placeholder="Enter password"/>
+    <button id="login-btn">Enter</button>
+    <p id="login-error"></p>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<div id="follow-bar">
+  Following: <span id="follow-name"></span>
+  <button id="stop-following">Stop</button>
+</div>
+
+<div id="player-list-container">
+  <div id="player-list">
+    <input id="search-box" placeholder="Search players"/>
+    <div id="players-content"></div>
+  </div>
+</div>
+
+<div id="coords">X:0 | Z:0</div>
+<div id="copy-toast">Copied!</div>
+
+<!-- HEAT -->
+<button id="heatmap-button">Heat Map</button>
+<div id="heatmap-panel">
+  <button id="heat-close">✕</button>
+  <div class="heat-option" data-days="3">Last 3 Days</div>
+  <div class="heat-option" data-days="7">Last 7 Days</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const CORRECT_PASSWORD = "6768";
+
+// LOGIN MEMORY
+window.addEventListener("load", () => {
+  if (localStorage.getItem("factionsvr_logged_in") === "true") {
+    document.getElementById("login-screen").style.display = "none";
+  }
+});
+
+document.getElementById("login-btn").onclick = () => {
+  const val = document.getElementById("password").value;
+
+  if (val === CORRECT_PASSWORD) {
+    localStorage.setItem("factionsvr_logged_in", "true");
+    document.getElementById("login-screen").style.display = "none";
+  } else {
+    document.getElementById("login-error").innerText = "Wrong password";
+  }
+};
+
+// MAP
+const map = L.map('map', {
+  crs: L.CRS.Simple,
+  minZoom: -2,
+  maxZoom: 2
+}).setView([0,0],1);
+
+L.tileLayer('https://factionsvr.com/api/map/chunk/{z}/{x}/{y}', {
+  tileSize:256,
+  noWrap:true,
+  maxNativeZoom:4
+}).addTo(map);
+
+// STATE
+const markers = {};
+let playerHistory = JSON.parse(localStorage.getItem("history")||"{}");
+
+function save(){
+  localStorage.setItem("history", JSON.stringify(playerHistory));
+}
+
+// COPY
+function copy(text){
+  navigator.clipboard.writeText(text);
+  const t=document.getElementById("copy-toast");
+  t.style.opacity=1;
+  setTimeout(()=>t.style.opacity=0,1200);
+}
+
+// COORDS
+map.on("mousemove",e=>{
+  document.getElementById("coords").innerText =
+    `X:${Math.floor(e.latlng.lng)} | Z:${Math.floor(-e.latlng.lat)}`;
+});
+
+// HOME
+function home(hist){
+  if(!hist?.length)return null;
+  const z={};
+  let l=hist[0];
+  for(let i=1;i<hist.length;i++){
+    const c=hist[i];
+    const d=Math.hypot(c.lng-l.lng,c.lat-l.lat);
+    if(d>80){
+      const x=Math.round(c.lng/10)*10;
+      const zc=Math.round(c.lat/10)*10;
+      z[`${x}:${zc}`]=(z[`${x}:${zc}`]||0)+1;
+    }
+    l=c;
+  }
+  let b=null,m=0;
+  for(const k in z){
+    if(z[k]>m){b=k;m=z[k];}
+  }
+  if(!b)return null;
+  const [x,z2]=b.split(":").map(Number);
+  return {x,z:z2};
+}
+
+// HEAT
+let heat={};
+
+function clearHeat(){
+  for(const k in heat)map.removeLayer(heat[k]);
+  heat={};
+}
+
+function heatmap(days){
+  clearHeat();
+  const now=Date.now();
+  const max=days*86400000;
+  let i=0;
+
+  for(const u in playerHistory){
+    playerHistory[u].forEach(p=>{
+      if(now-p.time>max)return;
+      heat[i++]=L.circleMarker([p.lat,p.lng],{
+        radius:days===3?10:18,
+        color:"red",
+        fillColor:"red",
+        fillOpacity:0.08,
+        stroke:false
+      }).addTo(map);
+    });
+  }
+}
+
+// CLOSE HEAT
+document.getElementById("heat-close").onclick=()=>{
+  document.getElementById("heatmap-panel").style.display="none";
+  clearHeat();
+};
+
+document.getElementById("heatmap-button").onclick=()=>{
+  document.getElementById("heatmap-panel").style.display="block";
+};
+
+document.querySelectorAll(".heat-option").forEach(b=>{
+  b.onclick=()=>heatmap(+b.dataset.days);
+});
+
+// LOAD
+async function load(){
+
+  const r=await fetch("https://api.wolver002.com/map/players");
+  const d=await r.json();
+
+  const list=document.getElementById("players-content");
+  list.innerHTML="";
+
+  Object.values(markers).forEach(m=>map.removeLayer(m));
+  for(const k in markers)delete markers[k];
+
+  d.players.forEach(p=>{
+
+    const u=p.Username;
+    const [x,y,z]=p.Pose.Head.Position;
+
+    const lat=-z,lng=x;
+
+    if(!playerHistory[u])playerHistory[u]=[];
+
+    playerHistory[u].push({lat,lng,time:Date.now()});
+    if(playerHistory[u].length>200)playerHistory[u].shift();
+
+    const m=L.circleMarker([lat,lng],{
+      radius:6,
+      color:"red",
+      fillColor:"red",
+      fillOpacity:1
+    }).addTo(map);
+
+    m.bindTooltip(u,{
+      permanent:true,
+      direction:"top",
+      offset:[0,-10],
+      className:"player-name-label"
+    });
+
+    markers[u]=m;
+
+    const h=home(playerHistory[u]);
+
+    const div=document.createElement("div");
+    div.className="player-item";
+
+    div.innerHTML=`
+      <b>${u}</b><br>
+      X:${x} Y:${y} Z:${z}<br>
+      🏠 ${h?`X:${h.x} Z:${h.z} <button class='home-copy'>Copy</button>`:"Unknown"}<br>
+      <button class="follow-btn">Follow</button>
+    `;
+
+    setTimeout(()=>{
+      const b=div.querySelector(".home-copy");
+      if(b&&h)b.onclick=e=>{
+        e.stopPropagation();
+        copy(`X:${h.x} Z:${h.z}`);
+      };
+    });
+
+    div.querySelector(".follow-btn").onclick=e=>{
+      e.stopPropagation();
+      document.getElementById("follow-bar").style.display="flex";
+      document.getElementById("follow-name").innerText=u;
+    };
+
+    list.appendChild(div);
+  });
+
+  save();
+}
+
+setInterval(load,3000);
+load();
+
+</script>
+
+</body>
+</html>
