@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>FactionsVR Player Tracker</title>
+  <title>FactionsVR Tracker</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <style>
+
     html, body, #map {
       width: 100%;
       height: 100%;
@@ -25,27 +26,27 @@
     }
 
     /* SIDEBAR */
+
     #sidebar {
       position: absolute;
       top: 10px;
       left: 10px;
       width: 340px;
       height: calc(100vh - 20px);
-      background: rgba(15,15,15,0.92);
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(12px);
       border-radius: 14px;
-      z-index: 5000;
-      overflow: hidden;
+      z-index: 9999;
       display: flex;
       flex-direction: column;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
     #title {
-      padding: 18px;
+      color: white;
       font-size: 24px;
       font-weight: bold;
-      color: white;
+      padding: 18px;
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
@@ -53,11 +54,10 @@
       margin: 12px;
       padding: 12px;
       border: none;
-      outline: none;
       border-radius: 10px;
       background: rgba(255,255,255,0.06);
       color: white;
-      font-size: 14px;
+      outline: none;
     }
 
     #players {
@@ -72,34 +72,35 @@
       padding: 12px;
       margin-bottom: 10px;
       color: white;
-      transition: 0.2s;
       border: 1px solid rgba(255,255,255,0.03);
+      transition: 0.2s;
     }
 
     .player:hover {
       background: rgba(255,255,255,0.08);
     }
 
+    .offline {
+      opacity: 0.4;
+    }
+
     .name {
       font-size: 16px;
       font-weight: bold;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .coords {
       font-size: 13px;
-      color: #cfcfcf;
+      color: #d0d0d0;
       margin-top: 4px;
-    }
-
-    .offline {
-      opacity: 0.45;
     }
 
     .buttons {
       margin-top: 10px;
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     button {
@@ -107,8 +108,8 @@
       border-radius: 8px;
       padding: 7px 10px;
       cursor: pointer;
-      color: white;
       background: #e53935;
+      color: white;
       font-size: 12px;
     }
 
@@ -116,11 +117,23 @@
       opacity: 0.9;
     }
 
+    #coords-box {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(15,15,15,0.95);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      z-index: 9999;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
     #topbar {
       position: absolute;
       top: 10px;
       right: 10px;
-      z-index: 5000;
+      z-index: 9999;
       display: flex;
       gap: 10px;
     }
@@ -128,33 +141,7 @@
     #topbar button {
       background: rgba(20,20,20,0.95);
       padding: 12px;
-      font-size: 14px;
       border: 1px solid rgba(255,255,255,0.05);
-    }
-
-    #coords-box {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      z-index: 5000;
-      background: rgba(15,15,15,0.95);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    #heat-status {
-      position: absolute;
-      top: 70px;
-      right: 10px;
-      z-index: 5000;
-      color: white;
-      background: rgba(20,20,20,0.9);
-      padding: 10px;
-      border-radius: 10px;
-      display: none;
     }
 
     .leaflet-tooltip {
@@ -165,6 +152,7 @@
       text-shadow: 0 0 5px black;
       box-shadow: none !important;
     }
+
   </style>
 </head>
 
@@ -173,19 +161,21 @@
 <div id="map"></div>
 
 <div id="sidebar">
-  <div id="title">FactionsVR Tracker</div>
+
+  <div id="title">
+    FactionsVR Tracker
+  </div>
 
   <input id="search" placeholder="Search players...">
 
   <div id="players"></div>
+
 </div>
 
 <div id="topbar">
   <button id="toggleHeat">Heat Map</button>
   <button id="resetView">Reset View</button>
 </div>
-
-<div id="heat-status">Heat Map Enabled</div>
 
 <div id="coords-box">
   X: 0 | Z: 0
@@ -211,30 +201,94 @@ map.touchZoom.enable();
 map.boxZoom.enable();
 map.keyboard.enable();
 
+const gridLayer = L.layerGroup().addTo(map);
+
+function drawGrid() {
+
+  gridLayer.clearLayers();
+
+  const zoom = map.getZoom();
+
+  let size = 100;
+
+  if (zoom <= -2) size = 500;
+  if (zoom <= -4) size = 1000;
+  if (zoom <= -6) size = 2500;
+  if (zoom <= -8) size = 5000;
+
+  const bounds = map.getBounds();
+
+  const minX = Math.floor(bounds.getWest() / size) * size;
+  const maxX = Math.ceil(bounds.getEast() / size) * size;
+
+  const minY = Math.floor(bounds.getSouth() / size) * size;
+  const maxY = Math.ceil(bounds.getNorth() / size) * size;
+
+  for (let x = minX; x <= maxX; x += size) {
+
+    L.polyline([
+      [minY, x],
+      [maxY, x]
+    ], {
+      color: "rgba(255,255,255,0.12)",
+      weight: 1,
+      interactive: false
+    }).addTo(gridLayer);
+  }
+
+  for (let y = minY; y <= maxY; y += size) {
+
+    L.polyline([
+      [y, minX],
+      [y, maxX]
+    ], {
+      color: "rgba(255,255,255,0.12)",
+      weight: 1,
+      interactive: false
+    }).addTo(gridLayer);
+  }
+}
+
+map.on("move zoom", drawGrid);
+
+drawGrid();
+
 const markers = {};
 const heatLayers = [];
-const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
 
 let heatEnabled = false;
 
+const knownPlayers =
+  JSON.parse(localStorage.getItem("knownPlayers") || "{}");
+
+function savePlayers() {
+
+  localStorage.setItem(
+    "knownPlayers",
+    JSON.stringify(knownPlayers)
+  );
+}
+
+function copy(text) {
+
+  navigator.clipboard.writeText(text);
+}
+
 map.on("mousemove", e => {
+
   document.getElementById("coords-box").innerText =
     `X: ${Math.floor(e.latlng.lng)} | Z: ${Math.floor(-e.latlng.lat)}`;
 });
-
-function savePlayers() {
-  localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
-}
 
 function addHeat(lat, lng) {
 
   if (!heatEnabled) return;
 
   const heat = L.circleMarker([lat, lng], {
-    radius: 25,
+    radius: 24,
     color: "red",
     fillColor: "red",
-    fillOpacity: 0.06,
+    fillOpacity: 0.05,
     stroke: false
   }).addTo(map);
 
@@ -242,7 +296,9 @@ function addHeat(lat, lng) {
 }
 
 function clearHeat() {
+
   heatLayers.forEach(h => map.removeLayer(h));
+
   heatLayers.length = 0;
 }
 
@@ -250,34 +306,31 @@ document.getElementById("toggleHeat").onclick = () => {
 
   heatEnabled = !heatEnabled;
 
-  const status = document.getElementById("heat-status");
-
   if (heatEnabled) {
-    status.style.display = "block";
 
     Object.values(knownPlayers).forEach(p => {
+
       addHeat(p.lat, p.lng);
     });
 
   } else {
-    status.style.display = "none";
+
     clearHeat();
   }
 };
 
 document.getElementById("resetView").onclick = () => {
+
   map.setView([0,0], 0);
 };
-
-function copy(text) {
-  navigator.clipboard.writeText(text);
-}
 
 async function load() {
 
   try {
 
-    const r = await fetch("https://factions-map.onrender.com/players");
+    const r =
+      await fetch("https://factions-map.onrender.com/players");
+
     const data = await r.json();
 
     const online = {};
@@ -293,25 +346,97 @@ async function load() {
 
       online[p.Username] = true;
 
-      knownPlayers[p.Username] = {
-        x,y,z,lat,lng,online:true
-      };
+      if (!knownPlayers[p.Username]) {
+
+        knownPlayers[p.Username] = {
+          history: [],
+          teleports: []
+        };
+      }
+
+      const old = knownPlayers[p.Username];
+
+      if (old.x !== undefined) {
+
+        const dist = Math.hypot(x - old.x, z - old.z);
+
+        if (dist > 1500) {
+
+          old.teleports.push({
+            x,
+            z
+          });
+
+          if (old.teleports.length > 20) {
+            old.teleports.shift();
+          }
+
+          const counts = {};
+
+          old.teleports.forEach(t => {
+
+            const tx =
+              Math.round(t.x / 100) * 100;
+
+            const tz =
+              Math.round(t.z / 100) * 100;
+
+            const key = tx + ":" + tz;
+
+            counts[key] =
+              (counts[key] || 0) + 1;
+          });
+
+          let best = null;
+          let bestCount = 0;
+
+          Object.entries(counts).forEach(([k,v]) => {
+
+            if (v > bestCount) {
+
+              best = k;
+              bestCount = v;
+            }
+          });
+
+          if (best) {
+
+            const split = best.split(":");
+
+            old.homeX = split[0];
+            old.homeZ = split[1];
+          }
+        }
+      }
+
+      old.x = x;
+      old.y = y;
+      old.z = z;
+      old.lat = lat;
+      old.lng = lng;
+      old.online = true;
 
       addHeat(lat, lng);
 
       if (!markers[p.Username]) {
 
-        markers[p.Username] = L.circleMarker([lat,lng], {
-          radius: 6,
-          color: "red",
-          fillColor: "red",
-          fillOpacity: 1
-        }).addTo(map);
+        markers[p.Username] = L.circleMarker(
+          [lat,lng],
+          {
+            radius: 6,
+            color: "red",
+            fillColor: "red",
+            fillOpacity: 1
+          }
+        ).addTo(map);
 
-        markers[p.Username].bindTooltip(p.Username, {
-          permanent: true,
-          direction: "top"
-        });
+        markers[p.Username].bindTooltip(
+          p.Username,
+          {
+            permanent: true,
+            direction: "top"
+          }
+        );
 
       } else {
 
@@ -320,7 +445,9 @@ async function load() {
     });
 
     Object.keys(knownPlayers).forEach(name => {
+
       if (!online[name]) {
+
         knownPlayers[name].online = false;
       }
     });
@@ -330,29 +457,51 @@ async function load() {
     savePlayers();
 
   } catch(err) {
+
     console.log(err);
   }
 }
 
 function renderPlayers() {
 
-  const wrap = document.getElementById("players");
-  const search = document.getElementById("search").value.toLowerCase();
+  const wrap =
+    document.getElementById("players");
+
+  const search =
+    document.getElementById("search")
+    .value
+    .toLowerCase();
 
   wrap.innerHTML = "";
 
-  const sorted = Object.entries(knownPlayers)
+  const sorted =
+    Object.entries(knownPlayers)
     .sort((a,b)=>b[1].online-a[1].online);
 
   sorted.forEach(([name,p]) => {
 
-    if (!name.toLowerCase().includes(search)) return;
+    if (
+      !name.toLowerCase().includes(search)
+    ) return;
 
-    const div = document.createElement("div");
+    let likelyHome = "Unknown";
+
+    if (
+      p.homeX !== undefined &&
+      p.homeZ !== undefined
+    ) {
+
+      likelyHome =
+        `X: ${p.homeX} | Z: ${p.homeZ}`;
+    }
+
+    const div =
+      document.createElement("div");
 
     div.className = "player";
 
-    if (!p.online) div.classList.add("offline");
+    if (!p.online)
+      div.classList.add("offline");
 
     div.innerHTML = `
       <div class="name">
@@ -372,17 +521,44 @@ function renderPlayers() {
         Z: ${p.z}
       </div>
 
+      <div class="coords" style="margin-top:8px;color:#ff7272;">
+        🏠 Likely Home
+      </div>
+
+      <div class="coords">
+        ${likelyHome}
+      </div>
+
       <div class="buttons">
-        <button class="tp">Copy TP</button>
-        <button class="view">View</button>
+        <button class="tp">
+          Copy TP
+        </button>
+
+        <button class="home">
+          Copy Home
+        </button>
+
+        <button class="view">
+          View
+        </button>
       </div>
     `;
 
     div.querySelector(".tp").onclick = () => {
+
       copy(`${p.x} ${p.y} ${p.z}`);
     };
 
+    div.querySelector(".home").onclick = () => {
+
+      if (p.homeX !== undefined) {
+
+        copy(`${p.homeX} ${p.homeZ}`);
+      }
+    };
+
     div.querySelector(".view").onclick = () => {
+
       map.setView([p.lat,p.lng], 4);
     };
 
@@ -390,7 +566,8 @@ function renderPlayers() {
   });
 }
 
-document.getElementById("search").oninput = renderPlayers;
+document.getElementById("search").oninput =
+  renderPlayers;
 
 setInterval(load, 3000);
 
