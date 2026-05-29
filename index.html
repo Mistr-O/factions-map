@@ -1,453 +1,400 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
   <title>FactionsVR Player Tracker</title>
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
+    html, body, #map {
       width: 100%;
       height: 100%;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
-      background: #000;
-      font-family: Arial, sans-serif;
-      color: white;
+      background: black;
+      font-family: Arial;
     }
 
-    body {
-      display: flex;
+    #map {
+      background: black;
+    }
+
+    .leaflet-container {
+      background: black !important;
     }
 
     /* SIDEBAR */
     #sidebar {
-      width: 360px;
-      height: 100vh;
-      background: #0b0b0b;
-      border-right: 1px solid #1f1f1f;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 340px;
+      height: calc(100vh - 20px);
+      background: rgba(15,15,15,0.92);
+      border-radius: 14px;
+      z-index: 5000;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-    }
-
-    #topbar {
-      padding: 16px;
-      border-bottom: 1px solid #1f1f1f;
-      background: #111;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.06);
     }
 
     #title {
-      font-size: 22px;
+      padding: 18px;
+      font-size: 24px;
       font-weight: bold;
-      margin-bottom: 12px;
+      color: white;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
     #search {
-      width: 100%;
+      margin: 12px;
       padding: 12px;
-      border-radius: 10px;
       border: none;
       outline: none;
-      background: #1a1a1a;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
       color: white;
-      box-sizing: border-box;
-    }
-
-    #stats {
-      margin-top: 10px;
-      color: #aaa;
       font-size: 14px;
     }
 
-    /* PLAYER LIST */
     #players {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
+      padding: 10px;
     }
 
     .player {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-      transition: 0.15s;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      color: white;
+      transition: 0.2s;
+      border: 1px solid rgba(255,255,255,0.03);
     }
 
     .player:hover {
-      background: #1b1b1b;
-    }
-
-    .player.online {
-      border-left: 5px solid #00ff66;
-    }
-
-    .player.offline {
-      border-left: 5px solid #ff4444;
-      opacity: 0.7;
+      background: rgba(255,255,255,0.08);
     }
 
     .name {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .coords {
-      color: #ccc;
-      font-size: 14px;
-      margin-bottom: 5px;
+      font-size: 13px;
+      color: #cfcfcf;
+      margin-top: 4px;
     }
 
-    .playtime {
-      color: #999;
-      font-size: 13px;
-      margin-bottom: 8px;
+    .offline {
+      opacity: 0.45;
     }
 
-    .home {
-      color: #ffb347;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .offline-text {
-      color: #ff6666;
-      font-size: 13px;
-      margin-top: 5px;
+    .buttons {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
     }
 
     button {
-      background: #222;
       border: none;
-      color: white;
-      padding: 8px 12px;
       border-radius: 8px;
+      padding: 7px 10px;
       cursor: pointer;
-      margin-right: 6px;
+      color: white;
+      background: #e53935;
+      font-size: 12px;
     }
 
     button:hover {
-      background: #333;
+      opacity: 0.9;
     }
 
-    /* RIGHT SIDE */
-    #main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-
-    #center-text {
-      text-align: center;
-    }
-
-    #big-count {
-      font-size: 90px;
-      font-weight: bold;
-      color: white;
-    }
-
-    #sub {
-      font-size: 24px;
-      color: #888;
-      margin-top: 10px;
-    }
-
-    #toast {
+    #topbar {
       position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #111;
-      border: 1px solid #333;
-      padding: 10px 16px;
-      border-radius: 10px;
-      opacity: 0;
-      transition: 0.2s;
+      top: 10px;
+      right: 10px;
+      z-index: 5000;
+      display: flex;
+      gap: 10px;
     }
 
-    ::-webkit-scrollbar {
-      width: 10px;
+    #topbar button {
+      background: rgba(20,20,20,0.95);
+      padding: 12px;
+      font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    ::-webkit-scrollbar-thumb {
-      background: #222;
+    #coords-box {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 5000;
+      background: rgba(15,15,15,0.95);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    #heat-status {
+      position: absolute;
+      top: 70px;
+      right: 10px;
+      z-index: 5000;
+      color: white;
+      background: rgba(20,20,20,0.9);
+      padding: 10px;
       border-radius: 10px;
+      display: none;
+    }
+
+    .leaflet-tooltip {
+      background: transparent !important;
+      border: none !important;
+      color: white !important;
+      font-weight: bold;
+      text-shadow: 0 0 5px black;
+      box-shadow: none !important;
     }
   </style>
 </head>
+
 <body>
 
+<div id="map"></div>
+
 <div id="sidebar">
+  <div id="title">FactionsVR Tracker</div>
 
-  <div id="topbar">
-    <div id="title">FactionsVR Tracker</div>
-
-    <input id="search" placeholder="Search player...">
-
-    <div id="stats">
-      Online: <span id="online-count">0</span><br>
-      Saved Players: <span id="saved-count">0</span>
-    </div>
-  </div>
+  <input id="search" placeholder="Search players...">
 
   <div id="players"></div>
-
 </div>
 
-<div id="main">
-
-  <div id="center-text">
-    <div id="big-count">0</div>
-    <div id="sub">PLAYERS ONLINE</div>
-  </div>
-
-  <div id="toast">Copied</div>
-
+<div id="topbar">
+  <button id="toggleHeat">Heat Map</button>
+  <button id="resetView">Reset View</button>
 </div>
+
+<div id="heat-status">Heat Map Enabled</div>
+
+<div id="coords-box">
+  X: 0 | Z: 0
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-const API = "https://factions-map.onrender.com/api/players";
+const map = L.map('map', {
+  crs: L.CRS.Simple,
+  minZoom: -10,
+  maxZoom: 12,
+  zoomSnap: 0.25,
+  zoomDelta: 0.25,
+  wheelPxPerZoomLevel: 60,
+  attributionControl: false
+}).setView([0,0], 0);
 
-const playersDiv = document.getElementById("players");
+map.scrollWheelZoom.enable();
+map.doubleClickZoom.enable();
+map.touchZoom.enable();
+map.boxZoom.enable();
+map.keyboard.enable();
 
-let history = JSON.parse(localStorage.getItem("history") || "{}");
-let offline = JSON.parse(localStorage.getItem("offlinePlayers") || "{}");
+const markers = {};
+const heatLayers = [];
+const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
 
-function save(){
-  localStorage.setItem("history", JSON.stringify(history));
-  localStorage.setItem("offlinePlayers", JSON.stringify(offline));
+let heatEnabled = false;
+
+map.on("mousemove", e => {
+  document.getElementById("coords-box").innerText =
+    `X: ${Math.floor(e.latlng.lng)} | Z: ${Math.floor(-e.latlng.lat)}`;
+});
+
+function savePlayers() {
+  localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
 }
 
-function toast(text){
-  const t = document.getElementById("toast");
-  t.innerText = text;
-  t.style.opacity = 1;
+function addHeat(lat, lng) {
 
-  setTimeout(()=>{
-    t.style.opacity = 0;
-  },1200);
+  if (!heatEnabled) return;
+
+  const heat = L.circleMarker([lat, lng], {
+    radius: 25,
+    color: "red",
+    fillColor: "red",
+    fillOpacity: 0.06,
+    stroke: false
+  }).addTo(map);
+
+  heatLayers.push(heat);
 }
 
-function copy(text){
+function clearHeat() {
+  heatLayers.forEach(h => map.removeLayer(h));
+  heatLayers.length = 0;
+}
+
+document.getElementById("toggleHeat").onclick = () => {
+
+  heatEnabled = !heatEnabled;
+
+  const status = document.getElementById("heat-status");
+
+  if (heatEnabled) {
+    status.style.display = "block";
+
+    Object.values(knownPlayers).forEach(p => {
+      addHeat(p.lat, p.lng);
+    });
+
+  } else {
+    status.style.display = "none";
+    clearHeat();
+  }
+};
+
+document.getElementById("resetView").onclick = () => {
+  map.setView([0,0], 0);
+};
+
+function copy(text) {
   navigator.clipboard.writeText(text);
-  toast("Copied");
 }
 
-function likelyHome(hist){
-
-  if(!hist || hist.length < 2) return null;
-
-  const teleports = {};
-
-  for(let i=1;i<hist.length;i++){
-
-    const a = hist[i-1];
-    const b = hist[i];
-
-    const dist = Math.hypot(b.x-a.x,b.z-a.z);
-
-    // TP DETECT
-    if(dist > 2000){
-
-      const gx = Math.round(b.x / 50) * 50;
-      const gz = Math.round(b.z / 50) * 50;
-
-      const key = gx + ":" + gz;
-
-      teleports[key] = (teleports[key] || 0) + 1;
-    }
-  }
-
-  let best = null;
-  let bestCount = 0;
-
-  for(const k in teleports){
-
-    if(teleports[k] > bestCount){
-      best = k;
-      bestCount = teleports[k];
-    }
-  }
-
-  if(!best) return null;
-
-  const [x,z] = best.split(":").map(Number);
-
-  return {x,z,count:bestCount};
-}
-
-async function load(){
+async function load() {
 
   try {
 
-    const r = await fetch(API);
-    const d = await r.json();
+    const r = await fetch("https://factions-map.onrender.com/players");
+    const data = await r.json();
 
-    const onlineNow = {};
+    const online = {};
 
-    playersDiv.innerHTML = "";
+    data.players.forEach(p => {
 
-    document.getElementById("big-count").innerText = d.players.length;
-    document.getElementById("online-count").innerText = d.players.length;
+      const x = Math.floor(p.Pose.Head.Position[0]);
+      const y = Math.floor(p.Pose.Head.Position[1]);
+      const z = Math.floor(p.Pose.Head.Position[2]);
 
-    // ONLINE PLAYERS
-    d.players.forEach(p=>{
+      const lat = -z;
+      const lng = x;
 
-      const name = p.Username;
+      online[p.Username] = true;
 
-      const [x,y,z] = p.Pose.Head.Position;
-
-      onlineNow[name] = true;
-
-      if(!history[name]) history[name] = [];
-
-      history[name].push({
-        x: Math.floor(x),
-        y: Math.floor(y),
-        z: Math.floor(z),
-        time: Date.now()
-      });
-
-      if(history[name].length > 500){
-        history[name].shift();
-      }
-
-      offline[name] = {
-        lastSeen: Date.now(),
-        x: Math.floor(x),
-        y: Math.floor(y),
-        z: Math.floor(z),
-        playtime: p.PlayTime
+      knownPlayers[p.Username] = {
+        x,y,z,lat,lng,online:true
       };
 
-      const home = likelyHome(history[name]);
+      addHeat(lat, lng);
 
-      const div = document.createElement("div");
-      div.className = "player online";
+      if (!markers[p.Username]) {
 
-      div.innerHTML = `
-        <div class="name">${name}</div>
+        markers[p.Username] = L.circleMarker([lat,lng], {
+          radius: 6,
+          color: "red",
+          fillColor: "red",
+          fillOpacity: 1
+        }).addTo(map);
 
-        <div class="coords">
-          X: ${Math.floor(x)}<br>
-          Y: ${Math.floor(y)}<br>
-          Z: ${Math.floor(z)}
-        </div>
+        markers[p.Username].bindTooltip(p.Username, {
+          permanent: true,
+          direction: "top"
+        });
 
-        <div class="playtime">
-          PlayTime: ${p.PlayTime}
-        </div>
+      } else {
 
-        <div class="home">
-          ${
-            home
-            ? `Likely Base:
-               X:${home.x}
-               Z:${home.z}
-               (${home.count} teleports)`
-            : `Likely Base: Unknown`
-          }
-        </div>
-
-        <button onclick="copy('X:${Math.floor(x)} Y:${Math.floor(y)} Z:${Math.floor(z)}')">
-          Copy Coords
-        </button>
-
-        ${
-          home
-          ? `
-          <button onclick="copy('X:${home.x} Z:${home.z}')">
-            Copy Base
-          </button>
-          `
-          : ""
-        }
-      `;
-
-      playersDiv.appendChild(div);
+        markers[p.Username].setLatLng([lat,lng]);
+      }
     });
 
-    // OFFLINE PLAYERS
-    for(const name in offline){
+    Object.keys(knownPlayers).forEach(name => {
+      if (!online[name]) {
+        knownPlayers[name].online = false;
+      }
+    });
 
-      if(onlineNow[name]) continue;
+    renderPlayers();
 
-      const p = offline[name];
+    savePlayers();
 
-      const mins = Math.floor((Date.now()-p.lastSeen)/60000);
-
-      const div = document.createElement("div");
-      div.className = "player offline";
-
-      div.innerHTML = `
-        <div class="name">${name}</div>
-
-        <div class="coords">
-          Last Coords:<br>
-          X: ${p.x}<br>
-          Y: ${p.y}<br>
-          Z: ${p.z}
-        </div>
-
-        <div class="playtime">
-          Last PlayTime: ${p.playtime || "Unknown"}
-        </div>
-
-        <div class="offline-text">
-          Offline for ${mins}m
-        </div>
-
-        <button onclick="copy('X:${p.x} Y:${p.y} Z:${p.z}')">
-          Copy Last Coords
-        </button>
-      `;
-
-      playersDiv.appendChild(div);
-    }
-
-    document.getElementById("saved-count").innerText =
-      Object.keys(offline).length;
-
-    save();
-
-    filterPlayers();
-
-  } catch(err){
-
+  } catch(err) {
     console.log(err);
-
-    document.getElementById("sub").innerText =
-      "SERVER OFFLINE";
   }
 }
 
-function filterPlayers(){
+function renderPlayers() {
 
-  const q = document.getElementById("search")
-    .value
-    .toLowerCase();
+  const wrap = document.getElementById("players");
+  const search = document.getElementById("search").value.toLowerCase();
 
-  document.querySelectorAll(".player").forEach(p=>{
+  wrap.innerHTML = "";
 
-    const txt = p.innerText.toLowerCase();
+  const sorted = Object.entries(knownPlayers)
+    .sort((a,b)=>b[1].online-a[1].online);
 
-    p.style.display = txt.includes(q)
-      ? "block"
-      : "none";
+  sorted.forEach(([name,p]) => {
+
+    if (!name.toLowerCase().includes(search)) return;
+
+    const div = document.createElement("div");
+
+    div.className = "player";
+
+    if (!p.online) div.classList.add("offline");
+
+    div.innerHTML = `
+      <div class="name">
+        ${name}
+        ${p.online ? "🟢" : "⚫"}
+      </div>
+
+      <div class="coords">
+        X: ${p.x}
+      </div>
+
+      <div class="coords">
+        Y: ${p.y}
+      </div>
+
+      <div class="coords">
+        Z: ${p.z}
+      </div>
+
+      <div class="buttons">
+        <button class="tp">Copy TP</button>
+        <button class="view">View</button>
+      </div>
+    `;
+
+    div.querySelector(".tp").onclick = () => {
+      copy(`${p.x} ${p.y} ${p.z}`);
+    };
+
+    div.querySelector(".view").onclick = () => {
+      map.setView([p.lat,p.lng], 4);
+    };
+
+    wrap.appendChild(div);
   });
 }
 
-document.getElementById("search")
-  .addEventListener("input", filterPlayers);
+document.getElementById("search").oninput = renderPlayers;
+
+setInterval(load, 3000);
 
 load();
-setInterval(load, 5000);
 
 </script>
 
