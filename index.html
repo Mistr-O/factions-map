@@ -1,261 +1,769 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FactionsVR Live Map</title>
 
-<title>FactionsVR Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet/dist/leaflet.css"
-/>
+  <style>
+    html, body, #map {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: Arial;
+    }
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    #map { z-index: 1; }
 
-<style>
+    /* LOGIN */
+    #login-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
 
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #0f0f0f;
-  font-family: Arial, sans-serif;
-}
+    #login-box {
+      background: rgba(20,20,20,0.9);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: white;
+      width: 260px;
+    }
 
-#map {
-  position: absolute;
-  left: 260px;
-  top: 0;
-  width: calc(100% - 260px);
-  height: 100%;
-  background:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
+    #login-box input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
 
-#sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 260px;
-  height: 100%;
-  background: #111;
-  border-right: 1px solid #222;
-  overflow-y: auto;
-  color: white;
-  z-index: 99999;
-}
+    #login-box button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: red;
+      color: white;
+      cursor: pointer;
+    }
 
-#sidebar h2 {
-  margin: 0;
-  padding: 15px;
-  background: #161616;
-  border-bottom: 1px solid #222;
-  font-size: 18px;
-}
+    #login-error {
+      color: #ff4d4d;
+      font-size: 12px;
+      margin-top: 6px;
+    }
 
-.player-entry {
-  padding: 10px;
-  border-bottom: 1px solid #222;
-  cursor: pointer;
-}
+    /* SIDEBAR */
+    #player-list-container {
+      position: absolute;
+      top: 70px;
+      left: 10px;
+      z-index: 3000;
+      display: flex;
+    }
 
-.player-entry:hover {
-  background: #1d1d1d;
-}
+    #player-list {
+      width: 320px;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: rgba(20,20,20,0.75);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 10px;
+      color: white;
+    }
 
-.player-name {
-  font-weight: bold;
-  font-size: 14px;
-  color: white;
-}
+    #hide-sidebar {
+      margin-left: 6px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(20,20,20,0.8);
+      color: white;
+      cursor: pointer;
+    }
 
-.player-coords {
-  font-size: 12px;
-  color: #aaa;
-  margin-top: 4px;
-}
+    #search-box {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
 
-.player-label {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  text-shadow: 0 0 5px black;
-}
+    /* PLAYER */
+    .player-item {
+      padding: 10px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      cursor: pointer;
+    }
 
-#topbar {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 99999;
-  background: rgba(0,0,0,0.75);
-  color: white;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 14px;
-}
+    .follow-btn {
+      margin-top: 5px;
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 5px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-</style>
+    .home-copy {
+      margin-left: 6px;
+      font-size: 11px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    .player-name-label {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px black;
+    }
+
+    /* FOLLOW */
+    #follow-bar {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20,20,20,0.85);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+      z-index: 4000;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #follow-name { color: #e74c3c; }
+
+    /* COORDS */
+    #coords {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      z-index: 3000;
+    }
+
+    /* TOAST */
+    #copy-toast {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: 0.2s;
+      z-index: 5000;
+    }
+
+    /* HEAT */
+    #heatmap-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5000;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #heatmap-panel {
+      position: absolute;
+      top: 55px;
+      right: 10px;
+      width: 180px;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      display: none;
+      z-index: 5000;
+    }
+
+    .heat-option {
+      margin-top: 8px;
+      padding: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #heat-close {
+      float: right;
+      background: red;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="sidebar">
-  <h2>Players</h2>
-  <div id="playerList"></div>
-</div>
-
-<div id="topbar">
-  Online:
-  <span id="count">0</span>
+<div id="login-screen">
+  <div id="login-box">
+    <h2>FactionsVR Map</h2>
+    <input id="password" type="password" placeholder="Enter password"/>
+    <button id="login-btn">Enter</button>
+    <p id="login-error"></p>
+  </div>
 </div>
 
 <div id="map"></div>
 
+<div id="follow-bar">
+  Following:
+  <span id="follow-name"></span>
+  <button id="stop-following">Stop</button>
+</div>
+
+<div id="player-list-container">
+  <div id="player-list">
+    <input id="search-box" placeholder="Search players"/>
+    <div id="players-content"></div>
+  </div>
+</div>
+
+<div id="coords">X:0 | Z:0</div>
+<div id="copy-toast">Copied!</div>
+
+<button id="heatmap-button">Heat Map</button>
+
+<div id="heatmap-panel">
+  <button id="heat-close">✕</button>
+
+  <div class="heat-option" data-days="3">
+    Last 3 Days
+  </div>
+
+  <div class="heat-option" data-days="7">
+    Last 7 Days
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
 
 const API =
-  "https://factions-map.onrender.com/players";
+"https://factions-map.onrender.com/players";
 
-const SCALE = 0.01;
+const CORRECT_PASSWORD = "6768";
 
+// LOGIN
+window.addEventListener("load", () => {
+
+  if (
+    localStorage.getItem("factionsvr_logged_in")
+    === "true"
+  ) {
+
+    document.getElementById(
+      "login-screen"
+    ).style.display = "none";
+
+  }
+
+});
+
+document.getElementById(
+  "login-btn"
+).onclick = () => {
+
+  const val =
+    document.getElementById(
+      "password"
+    ).value;
+
+  if (val === CORRECT_PASSWORD) {
+
+    localStorage.setItem(
+      "factionsvr_logged_in",
+      "true"
+    );
+
+    document.getElementById(
+      "login-screen"
+    ).style.display = "none";
+
+  } else {
+
+    document.getElementById(
+      "login-error"
+    ).innerText = "Wrong password";
+
+  }
+
+};
+
+// MAP
 const map = L.map('map', {
   crs: L.CRS.Simple,
-  minZoom: -5,
-  maxZoom: 5,
-  zoomControl: true
-}).setView([0, 0], 0);
+  minZoom: -2,
+  maxZoom: 2
+}).setView([0,0],1);
 
+L.tileLayer(
+'https://factionsvr.com/api/map/chunk/{z}/{x}/{y}',
+{
+  tileSize:256,
+  noWrap:true,
+  maxNativeZoom:4
+}).addTo(map);
+
+// STATE
 const markers = {};
 
-async function loadPlayers() {
+let following = null;
 
-  try {
+let playerHistory =
+  JSON.parse(
+    localStorage.getItem("history") || "{}"
+  );
 
-    const res = await fetch(API);
-    const data = await res.json();
+function save(){
 
-    document.getElementById("count").innerText =
-      data.players.length;
+  localStorage.setItem(
+    "history",
+    JSON.stringify(playerHistory)
+  );
 
-    const playerList =
-      document.getElementById("playerList");
+}
 
-    playerList.innerHTML = "";
+// COPY
+function copy(text){
 
-    const currentUsers = new Set();
+  navigator.clipboard.writeText(text);
 
-    data.players.forEach(player => {
+  const t =
+    document.getElementById(
+      "copy-toast"
+    );
 
-      const username = player.Username;
+  t.style.opacity = 1;
 
-      currentUsers.add(username);
+  setTimeout(() => {
 
-      const pos = player.Pose.Head.Position;
+    t.style.opacity = 0;
 
-      const worldX = Math.round(pos[0]);
-      const worldY = Math.round(pos[1]);
-      const worldZ = Math.round(pos[2]);
+  }, 1200);
 
-      const x = pos[0] * SCALE;
-      const z = pos[2] * SCALE;
+}
 
-      const latlng = [z, x];
+// COORDS
+map.on("mousemove", e => {
 
-      // PLAYER LIST ENTRY
-      const entry = document.createElement("div");
+  document.getElementById(
+    "coords"
+  ).innerText =
 
-      entry.className = "player-entry";
+    `X:${Math.floor(e.latlng.lng)}
+     | Z:${Math.floor(-e.latlng.lat)}`;
 
-      entry.innerHTML = `
-        <div class="player-name">
-          ${username}
-        </div>
+});
 
-        <div class="player-coords">
-          X: ${worldX}<br>
-          Y: ${worldY}<br>
-          Z: ${worldZ}
-        </div>
-      `;
+// HOME
+function home(hist){
 
-      entry.onclick = () => {
-        map.setView(latlng, 2);
-      };
+  if(!hist?.length) return null;
 
-      playerList.appendChild(entry);
+  const z = {};
 
-      // CREATE NEW MARKER
-      if (!markers[username]) {
+  let l = hist[0];
 
-        const marker = L.circleMarker(
-          latlng,
+  for(let i=1;i<hist.length;i++){
+
+    const c = hist[i];
+
+    const d =
+      Math.hypot(
+        c.lng-l.lng,
+        c.lat-l.lat
+      );
+
+    if(d>80){
+
+      const x =
+        Math.round(c.lng/10)*10;
+
+      const zc =
+        Math.round(c.lat/10)*10;
+
+      z[`${x}:${zc}`] =
+        (z[`${x}:${zc}`]||0)+1;
+
+    }
+
+    l=c;
+
+  }
+
+  let b=null,m=0;
+
+  for(const k in z){
+
+    if(z[k]>m){
+
+      b=k;
+      m=z[k];
+
+    }
+
+  }
+
+  if(!b)return null;
+
+  const [x,z2] =
+    b.split(":").map(Number);
+
+  return {x,z:z2};
+
+}
+
+// HEAT
+let heat = {};
+
+function clearHeat(){
+
+  for(const k in heat){
+
+    map.removeLayer(heat[k]);
+
+  }
+
+  heat = {};
+
+}
+
+function heatmap(days){
+
+  clearHeat();
+
+  const now = Date.now();
+
+  const max =
+    days * 86400000;
+
+  let i = 0;
+
+  for(const u in playerHistory){
+
+    playerHistory[u].forEach(p=>{
+
+      if(now-p.time>max)return;
+
+      heat[i++] =
+        L.circleMarker(
+          [p.lat,p.lng],
           {
-            radius: 6,
-            color: "#ff3b3b",
-            fillColor: "#ff3b3b",
-            fillOpacity: 1
+            radius:
+              days===3 ? 10 : 18,
+            color:"red",
+            fillColor:"red",
+            fillOpacity:0.08,
+            stroke:false
           }
         ).addTo(map);
 
-        marker.bindTooltip(
-          `
-          <div>
-            ${username}<br>
-            X: ${worldX}<br>
-            Y: ${worldY}<br>
-            Z: ${worldZ}
-          </div>
-          `,
-          {
-            permanent: true,
-            direction: "top",
-            className: "player-label",
-            offset: [0, -8]
-          }
-        );
+    });
 
-        marker.bindPopup(`
-          <b>${username}</b><br><br>
+  }
 
-          X: ${worldX}<br>
-          Y: ${worldY}<br>
-          Z: ${worldZ}<br><br>
+}
 
-          Ping:
-          ${Math.round(player.ping)}
-        `);
+document.getElementById(
+  "heat-close"
+).onclick = () => {
 
-        markers[username] = marker;
+  document.getElementById(
+    "heatmap-panel"
+  ).style.display = "none";
 
-      } else {
+  clearHeat();
 
-        markers[username].setLatLng(latlng);
+};
+
+document.getElementById(
+  "heatmap-button"
+).onclick = () => {
+
+  const panel =
+    document.getElementById(
+      "heatmap-panel"
+    );
+
+  panel.style.display =
+    panel.style.display === "block"
+      ? "none"
+      : "block";
+
+};
+
+document.querySelectorAll(
+  ".heat-option"
+).forEach(b=>{
+
+  b.onclick = () =>
+    heatmap(+b.dataset.days);
+
+});
+
+// FOLLOW
+document.getElementById(
+  "stop-following"
+).onclick = () => {
+
+  following = null;
+
+  document.getElementById(
+    "follow-bar"
+  ).style.display = "none";
+
+};
+
+// LOAD
+async function load(){
+
+  try {
+
+    const r =
+      await fetch(API);
+
+    const d =
+      await r.json();
+
+    const list =
+      document.getElementById(
+        "players-content"
+      );
+
+    list.innerHTML = "";
+
+    const current = {};
+
+    d.players.forEach(p=>{
+
+      const u = p.Username;
+
+      const [x,y,z] =
+        p.Pose.Head.Position;
+
+      const lat = -z;
+      const lng = x;
+
+      current[u] = true;
+
+      if(!playerHistory[u])
+        playerHistory[u] = [];
+
+      playerHistory[u].push({
+        lat,
+        lng,
+        time: Date.now()
+      });
+
+      if(playerHistory[u].length > 200){
+
+        playerHistory[u].shift();
 
       }
 
+      // MARKER
+      if(!markers[u]){
+
+        const m =
+          L.circleMarker(
+            [lat,lng],
+            {
+              radius:6,
+              color:"red",
+              fillColor:"red",
+              fillOpacity:1
+            }
+          ).addTo(map);
+
+        markers[u] = m;
+
+      }
+
+      markers[u].setLatLng(
+        [lat,lng]
+      );
+
+      markers[u].bindTooltip(
+        `
+        <div>
+          ${u}<br>
+          X:${Math.round(x)}<br>
+          Y:${Math.round(y)}<br>
+          Z:${Math.round(z)}
+        </div>
+        `,
+        {
+          permanent:true,
+          direction:"top",
+          offset:[0,-10],
+          className:"player-name-label"
+        }
+      );
+
+      // FOLLOW CAMERA
+      if(following === u){
+
+        map.setView(
+          [lat,lng],
+          map.getZoom()
+        );
+
+      }
+
+      const h =
+        home(playerHistory[u]);
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "player-item";
+
+      div.innerHTML = `
+        <b>${u}</b><br>
+
+        X:${Math.round(x)}
+        Y:${Math.round(y)}
+        Z:${Math.round(z)}
+        <br>
+
+        🏠 ${
+          h
+          ? `
+            X:${h.x}
+            Z:${h.z}
+
+            <button class='home-copy'>
+              Copy
+            </button>
+          `
+          : "Unknown"
+        }
+
+        <br>
+
+        <button class="follow-btn">
+          Follow
+        </button>
+      `;
+
+      div.onclick = () => {
+
+        map.setView(
+          [lat,lng],
+          1
+        );
+
+      };
+
+      setTimeout(()=>{
+
+        const b =
+          div.querySelector(
+            ".home-copy"
+          );
+
+        if(b && h){
+
+          b.onclick = e => {
+
+            e.stopPropagation();
+
+            copy(
+              `X:${h.x} Z:${h.z}`
+            );
+
+          };
+
+        }
+
+      });
+
+      div.querySelector(
+        ".follow-btn"
+      ).onclick = e => {
+
+        e.stopPropagation();
+
+        following = u;
+
+        document.getElementById(
+          "follow-bar"
+        ).style.display = "flex";
+
+        document.getElementById(
+          "follow-name"
+        ).innerText = u;
+
+      };
+
+      list.appendChild(div);
+
     });
 
-    // REMOVE OFFLINE PLAYERS
-    for (const username in markers) {
+    // REMOVE OFFLINE
+    for(const u in markers){
 
-      if (!currentUsers.has(username)) {
+      if(!current[u]){
 
-        map.removeLayer(markers[username]);
+        map.removeLayer(
+          markers[u]
+        );
 
-        delete markers[username];
+        delete markers[u];
 
       }
 
     }
 
-  } catch (err) {
+    save();
+
+  } catch(err){
 
     console.error(err);
 
@@ -263,9 +771,9 @@ async function loadPlayers() {
 
 }
 
-loadPlayers();
+setInterval(load,3000);
 
-setInterval(loadPlayers, 3000);
+load();
 
 </script>
 
