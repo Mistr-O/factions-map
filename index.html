@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FactionsVR Live Map</title>
+
+<title>FactionsVR Map</title>
 
 <link
   rel="stylesheet"
@@ -13,173 +14,158 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-  html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #111;
-    font-family: Arial, sans-serif;
-  }
 
-  #map {
-    width: 100%;
-    height: 100%;
-    background: #181818;
-  }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0f0f0f;
+  font-family: Arial, sans-serif;
+}
 
-  .player-label {
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-size: 12px;
-    box-shadow: none;
-  }
+#map {
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
 
-  #status {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 9999;
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-  }
+.player-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 0 0 5px black;
+}
+
+#topbar {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 99999;
+  background: rgba(0,0,0,0.75);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="status">Loading...</div>
+<div id="topbar">
+  Players Online:
+  <span id="count">0</span>
+</div>
+
 <div id="map"></div>
 
 <script>
-const API_URL = "https://factions-map.onrender.com/players";
 
-// IMPORTANT
+const API =
+  "https://factions-map.onrender.com/players";
+
+const SCALE = 0.01;
+
 const map = L.map('map', {
   crs: L.CRS.Simple,
   minZoom: -5,
-  maxZoom: 5
+  maxZoom: 5,
+  zoomControl: true
 }).setView([0, 0], 0);
 
-// background grid
-function createGrid() {
-  for (let x = -50000; x <= 50000; x += 1000) {
-    L.polyline([
-      [-50000, x],
-      [50000, x]
-    ], {
-      color: "#222",
-      weight: 1
-    }).addTo(map);
-  }
-
-  for (let y = -50000; y <= 50000; y += 1000) {
-    L.polyline([
-      [y, -50000],
-      [y, 50000]
-    ], {
-      color: "#222",
-      weight: 1
-    }).addTo(map);
-  }
-}
-
-createGrid();
-
-const statusBox = document.getElementById("status");
-
-let markers = [];
-
-// scale world coords
-const SCALE = 0.01;
+const markers = {};
 
 async function loadPlayers() {
 
   try {
 
-    const res = await fetch(API_URL);
+    const res = await fetch(API);
     const data = await res.json();
 
-    // remove old markers
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
+    document.getElementById("count").innerText =
+      data.players.length;
 
-    if (!data.players) {
-      statusBox.innerText = "No players";
-      return;
-    }
-
-    statusBox.innerText =
-      "Players Online: " + data.players.length;
+    const currentUsers = new Set();
 
     data.players.forEach(player => {
 
+      const username = player.Username;
+
+      currentUsers.add(username);
+
       const pos = player.Pose.Head.Position;
 
-      const worldX = pos[0];
-      const worldY = pos[1];
-      const worldZ = pos[2];
+      const x = pos[0] * SCALE;
+      const z = pos[2] * SCALE;
 
-      // convert coords
-      const mapX = worldX * SCALE;
-      const mapY = worldZ * SCALE;
+      const latlng = [z, x];
 
-      // marker
-      const marker = L.circleMarker(
-        [mapY, mapX],
-        {
-          radius: 6,
-          color: "red",
-          fillColor: "red",
-          fillOpacity: 1
-        }
-      ).addTo(map);
+      // CREATE NEW MARKER
+      if (!markers[username]) {
 
-      // username label
-      marker.bindTooltip(
-        player.Username,
-        {
-          permanent: true,
-          direction: "top",
-          className: "player-label"
-        }
-      );
+        const marker = L.circleMarker(
+          latlng,
+          {
+            radius: 6,
+            color: "#ff3b3b",
+            fillColor: "#ff3b3b",
+            fillOpacity: 1
+          }
+        ).addTo(map);
 
-      // popup
-      marker.bindPopup(`
-        <b>${player.Username}</b><br>
-        X: ${Math.round(worldX)}<br>
-        Y: ${Math.round(worldY)}<br>
-        Z: ${Math.round(worldZ)}<br>
-        Ping: ${Math.round(player.ping)}
-      `);
+        marker.bindTooltip(
+          username,
+          {
+            permanent: true,
+            direction: "top",
+            className: "player-label",
+            offset: [0, -8]
+          }
+        );
 
-      markers.push(marker);
+        markers[username] = marker;
+
+      } else {
+
+        // MOVE EXISTING MARKER
+        markers[username].setLatLng(latlng);
+
+      }
 
     });
+
+    // REMOVE OFFLINE PLAYERS
+    for (const username in markers) {
+
+      if (!currentUsers.has(username)) {
+
+        map.removeLayer(markers[username]);
+
+        delete markers[username];
+
+      }
+
+    }
 
   } catch (err) {
 
     console.error(err);
 
-    statusBox.innerText =
-      "Failed to load players";
-
   }
 
 }
 
-// load first time
 loadPlayers();
 
-// refresh
-setInterval(loadPlayers, 5000);
+setInterval(loadPlayers, 3000);
 
 </script>
 
