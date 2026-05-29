@@ -1,103 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Factions Map</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FactionsVR Live Map</title>
 
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #111;
-    }
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+    font-family: Arial, sans-serif;
+  }
 
-    #map {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: #1a1a1a;
-    }
+  #map {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background:
+      linear-gradient(#1b1b1b 1px, transparent 1px),
+      linear-gradient(90deg, #1b1b1b 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
 
-    .player-dot {
-      width: 10px;
-      height: 10px;
-      background: red;
-      border-radius: 50%;
-      position: absolute;
-      transform: translate(-50%, -50%);
-    }
+  .player {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
 
-    .label {
-      position: absolute;
-      color: white;
-      font-size: 10px;
-      transform: translate(-50%, -120%);
-      pointer-events: none;
-    }
-  </style>
+  .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: red;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(255,0,0,0.8);
+  }
+
+  .name {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 12px;
+    white-space: nowrap;
+    text-shadow: 0 0 5px black;
+  }
+
+  #status {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    z-index: 9999;
+    font-size: 14px;
+  }
+</style>
 </head>
 
 <body>
-  <div id="map"></div>
 
-  <script>
-    const API_URL = "https://factions-map.onrender.com/players";
-    const map = document.getElementById("map");
+<div id="status">Loading players...</div>
+<div id="map"></div>
 
-    // store markers so we can refresh them
-    let markers = {};
+<script>
+const API_URL = "https://factions-map.onrender.com/players";
 
-    async function loadPlayers() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
+const map = document.getElementById("map");
+const statusBox = document.getElementById("status");
 
-        const players = data.players;
+// scale world coords down
+const SCALE = 0.01;
 
-        // clear old markers
-        map.innerHTML = "";
-        markers = {};
+// center map
+const CENTER_X = window.innerWidth / 2;
+const CENTER_Y = window.innerHeight / 2;
 
-        players.forEach(p => {
-          const pos = p.Pose.Head.Position;
+async function loadPlayers() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
 
-          const x = pos[0];
-          const z = pos[2];
+    map.innerHTML = "";
 
-          // SCALE (adjust if needed)
-          const scale = 0.01;
-
-          const px = x * scale;
-          const pz = z * scale;
-
-          // DOT
-          const dot = document.createElement("div");
-          dot.className = "player-dot";
-          dot.style.left = px + "px";
-          dot.style.top = pz + "px";
-
-          // LABEL
-          const label = document.createElement("div");
-          label.className = "label";
-          label.style.left = px + "px";
-          label.style.top = pz + "px";
-          label.innerText = p.Username;
-
-          map.appendChild(dot);
-          map.appendChild(label);
-
-          markers[p.id] = { dot, label };
-        });
-
-      } catch (err) {
-        console.error("Failed to load players:", err);
-      }
+    if (!data.players) {
+      statusBox.innerText = "No players found";
+      return;
     }
 
-    // initial load
-    loadPlayers();
+    statusBox.innerText = `Players Online: ${data.players.length}`;
 
-    // refresh every 5 seconds
-    setInterval(loadPlayers, 5000);
-  </script>
+    data.players.forEach(player => {
+
+      // get world position
+      const pos = player.Pose.Head.Position;
+
+      const worldX = pos[0];
+      const worldY = pos[1];
+      const worldZ = pos[2];
+
+      // convert world coords to screen coords
+      const screenX = CENTER_X + (worldX * SCALE);
+      const screenY = CENTER_Y - (worldZ * SCALE);
+
+      // create player container
+      const playerDiv = document.createElement("div");
+      playerDiv.className = "player";
+
+      playerDiv.style.left = screenX + "px";
+      playerDiv.style.top = screenY + "px";
+
+      // player dot
+      const dot = document.createElement("div");
+      dot.className = "dot";
+
+      // username
+      const name = document.createElement("div");
+      name.className = "name";
+      name.innerText = player.Username;
+
+      // tooltip
+      playerDiv.title =
+`Username: ${player.Username}
+X: ${Math.round(worldX)}
+Y: ${Math.round(worldY)}
+Z: ${Math.round(worldZ)}
+Ping: ${Math.round(player.ping)}`;
+
+      playerDiv.appendChild(dot);
+      playerDiv.appendChild(name);
+
+      map.appendChild(playerDiv);
+    });
+
+  } catch (err) {
+    console.error(err);
+    statusBox.innerText = "Failed to load API";
+  }
+}
+
+// first load
+loadPlayers();
+
+// auto refresh
+setInterval(loadPlayers, 5000);
+</script>
+
 </body>
 </html>
