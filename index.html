@@ -513,10 +513,9 @@ async function loadPlayers(){
 
     savePlayers();
 
-  }catch(err){
-
-    console.log(err);
-  }
+catch(err){
+  console.error("LOAD PLAYERS ERROR:", err);
+}
 }/* RENDER */
 
 function renderPlayers(){
