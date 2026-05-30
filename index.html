@@ -617,6 +617,7 @@ function buildHeatInspector(){
   /* RENDER */
 
 function renderPlayers(){
+  console.log("renderPlayers running");
 
   const wrap =
   document.getElementById("players");
@@ -643,6 +644,7 @@ function renderPlayers(){
 
     const home =
     getLikelyHome(p.history);
+    console.log(name, home);
 
     const div =
     document.createElement("div");
