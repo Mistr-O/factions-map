@@ -314,6 +314,11 @@ document.getElementById("heatBtn").onclick = ()=>{
   if(heatEnabled){
 
     buildHeatInspector();
+    } catch(err) {
+
+  console.error("LOAD PLAYERS ERROR:", err);
+
+}
 
   }else{
 
