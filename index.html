@@ -275,11 +275,6 @@ let heatEnabled = false;
 const locationData = {};
 const hotspotMarkers = [];
 
-/* REAL HEATMAP */
-
-let heatLayer = null;
-const heatPoints = [];
-
 const knownPlayers =
 JSON.parse(
   localStorage.getItem("knownPlayers") || "{}"
@@ -316,78 +311,17 @@ document.getElementById("heatBtn").onclick = ()=>{
 
   if(heatEnabled){
 
-function buildHeatInspector(){
+    buildHeatInspector();
 
-  hotspotMarkers.forEach(
-    m => map.removeLayer(m)
-  );
+  }else{
 
-  hotspotMarkers.length = 0;
+    hotspotMarkers.forEach(
+      m => map.removeLayer(m)
+    );
 
-  Object.entries(locationData)
-  .forEach(([key,data])=>{
-
-    const [x,z] =
-    key.split(":").map(Number);
-
-    const playerCount =
-    Object.keys(data).length;
-
-    const marker =
-    L.circle(
-      [-z,x],
-      {
-        radius: playerCount * 50,
-        color:"#ff5555",
-        fillColor:"#ff2222",
-        fillOpacity:0.25,
-        weight:1
-      }
-    ).addTo(map);
-
-    marker.on("click",()=>{
-
-      let html =
-      "<h3>Players Here</h3>";
-
-      Object.entries(data)
-      .forEach(([name,info])=>{
-
-        const avgY =
-        Math.round(
-          info.yValues.reduce(
-            (a,b)=>a+b,
-            0
-          ) /
-          info.yValues.length
-        );
-
-        const mins =
-        Math.round(
-          (info.lastSeen -
-          info.firstSeen)
-          / 60000
-        );
-
-        html += `
-          <b>${name}</b><br>
-          Avg Y: ${avgY}<br>
-          Time Here: ${mins} min<br><br>
-        `;
-      });
-
-      L.popup()
-      .setLatLng([-z,x])
-      .setContent(html)
-      .openOn(map);
-
-    });
-
-    hotspotMarkers.push(marker);
-
-  });
-
-}
+    hotspotMarkers.length = 0;
+  }
+};
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
@@ -519,11 +453,6 @@ console.log("Data:", data);
   y,
   time:Date.now()
 });
-document.getElementById("heatBtn").onclick = ()=>{
-  lat,
-  lng,
-  1
-]);
 const cell = 250;
 
 const gx =
