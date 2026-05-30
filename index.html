@@ -471,11 +471,13 @@ console.log("Data:", data);
       player.lng = lng;
       player.online = true;
 
-      player.history.push({
-        lat,
-        lng,
-        time:Date.now()
-      });
+  player.history.push({
+  player:p.Username,
+  lat,
+  lng,
+  y,
+  time:Date.now()
+});
 
       if(player.history.length > 5000){
 
