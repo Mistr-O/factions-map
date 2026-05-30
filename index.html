@@ -535,21 +535,7 @@ if(heatEnabled){
 
 }
 
-  Object.values(knownPlayers).forEach(p=>{
 
-    if(!p.history) return;
-
-    p.history.forEach(pos=>{
-
-      points.push([
-        pos.lat,
-        pos.lng,
-        1
-      ]);
-
-    });
-
-  });
 
   } catch(err) {
 
