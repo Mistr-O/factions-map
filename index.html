@@ -376,14 +376,14 @@ function getLikelyHome(history){
 
   if(!best) return null;
 
-  const [x,z] =
-  best.split(":").map(Number);
+const [x,z] =
+best.split(":").map(Number);
 
-  return {
-    x,
-    z:-z
-  };
-}
+return {
+  x,
+  z:-z,
+  teleports: teleports[best]
+};
 
 /* LOAD */
 
