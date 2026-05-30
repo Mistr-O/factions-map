@@ -207,7 +207,7 @@ button{
 const map = L.map("map",{
   crs: L.CRS.Simple,
   minZoom: -10,
-  maxZoom: 100,
+  maxZoom: 12,
   zoomSnap: 0.25,
   zoomDelta: 0.25,
   attributionControl: false
@@ -275,6 +275,11 @@ let heatEnabled = false;
 const locationData = {};
 const hotspotMarkers = [];
 
+/* REAL HEATMAP */
+
+let heatLayer = null;
+const heatPoints = [];
+
 const knownPlayers =
 JSON.parse(
   localStorage.getItem("knownPlayers") || "{}"
@@ -311,35 +316,78 @@ document.getElementById("heatBtn").onclick = ()=>{
 
   if(heatEnabled){
 
-    if(heatLayer){
-      map.removeLayer(heatLayer);
-    }
+function buildHeatInspector(){
 
-    heatLayer = L.heatLayer(
-      heatPoints,
+  hotspotMarkers.forEach(
+    m => map.removeLayer(m)
+  );
+
+  hotspotMarkers.length = 0;
+
+  Object.entries(locationData)
+  .forEach(([key,data])=>{
+
+    const [x,z] =
+    key.split(":").map(Number);
+
+    const playerCount =
+    Object.keys(data).length;
+
+    const marker =
+    L.circle(
+      [-z,x],
       {
-        radius:25,
-        blur:20,
-        maxZoom:8
+        radius: playerCount * 50,
+        color:"#ff5555",
+        fillColor:"#ff2222",
+        fillOpacity:0.25,
+        weight:1
       }
     ).addTo(map);
 
-    buildHeatInspector();
+    marker.on("click",()=>{
 
-  }else{
+      let html =
+      "<h3>Players Here</h3>";
 
-    if(heatLayer){
-      map.removeLayer(heatLayer);
-      heatLayer = null;
-    }
+      Object.entries(data)
+      .forEach(([name,info])=>{
 
-    hotspotMarkers.forEach(
-      m => map.removeLayer(m)
-    );
+        const avgY =
+        Math.round(
+          info.yValues.reduce(
+            (a,b)=>a+b,
+            0
+          ) /
+          info.yValues.length
+        );
 
-    hotspotMarkers.length = 0;
-  }
-};
+        const mins =
+        Math.round(
+          (info.lastSeen -
+          info.firstSeen)
+          / 60000
+        );
+
+        html += `
+          <b>${name}</b><br>
+          Avg Y: ${avgY}<br>
+          Time Here: ${mins} min<br><br>
+        `;
+      });
+
+      L.popup()
+      .setLatLng([-z,x])
+      .setContent(html)
+      .openOn(map);
+
+    });
+
+    hotspotMarkers.push(marker);
+
+  });
+
+}
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
@@ -471,6 +519,11 @@ console.log("Data:", data);
   y,
   time:Date.now()
 });
+document.getElementById("heatBtn").onclick = ()=>{
+  lat,
+  lng,
+  1
+]);
 const cell = 250;
 
 const gx =
