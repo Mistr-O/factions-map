@@ -315,33 +315,6 @@ map.on("mousemove",e=>{
 
 function buildHeatInspector(){
 
-  hotspotMarkers.forEach(
-    m => map.removeLayer(m)
-  );
-
-  hotspotMarkers.length = 0;
-
-  Object.entries(locationData)
-  .forEach(([key,data])=>{
-
-    const [x,z] = key.split(":").map(Number);
-
-    const marker = L.circleMarker(
-      [-z,x],
-      {
-        radius:12,
-        color:"red",
-        fillColor:"red",
-        fillOpacity:0.5
-      }
-    ).addTo(map);
-
-    hotspotMarkers.push(marker);
-
-  });
-
-}
-
 document.getElementById("heatBtn").onclick = ()=>{
 
   heatEnabled = !heatEnabled;
