@@ -309,8 +309,42 @@ map.on("mousemove",e=>{
 
   document.getElementById("coordsBox").innerText =
     `X: ${Math.floor(e.latlng.lng)} | Z: ${Math.floor(-e.latlng.lat)}`;
-});/* HEAT */
+/* HEAT */
 
+document.getElementById("heatBtn").onclick = ()=>{
+
+  heatEnabled = !heatEnabled;
+
+  if(heatEnabled){
+
+    if(heatLayer){
+      map.removeLayer(heatLayer);
+    }
+
+    heatLayer = L.heatLayer(
+      heatPoints,
+      {
+        radius:25,
+        blur:20,
+        maxZoom:8
+      }
+    ).addTo(map);
+
+    buildHeatInspector();
+
+  }else{
+
+    if(heatLayer){
+      map.removeLayer(heatLayer);
+    }
+
+    hotspotMarkers.forEach(
+      m => map.removeLayer(m)
+    );
+
+    hotspotMarkers.length = 0;
+  }
+};
 
   hotspotMarkers.forEach(
     m => map.removeLayer(m)
