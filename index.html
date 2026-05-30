@@ -310,16 +310,6 @@ map.on("mousemove",e=>{
     `X: ${Math.floor(e.latlng.lng)} | Z: ${Math.floor(-e.latlng.lat)}`;
 });/* HEAT */
 
-heatPoints.push([
-  lat,
-  lng,
-  1
-]);
-  heatEnabled = !heatEnabled;
-
-  if(heatEnabled){
-
-function buildHeatInspector(){
 
   hotspotMarkers.forEach(
     m => map.removeLayer(m)
