@@ -317,26 +317,9 @@ document.getElementById("heatBtn").onclick = ()=>{
 
   if(heatEnabled){
 
-    if(heatLayer){
-      map.removeLayer(heatLayer);
-    }
-
-    heatLayer = L.heatLayer(
-      heatPoints,
-      {
-        radius:25,
-        blur:20,
-        maxZoom:8
-      }
-    ).addTo(map);
-
     buildHeatInspector();
 
   }else{
-
-    if(heatLayer){
-      map.removeLayer(heatLayer);
-    }
 
     hotspotMarkers.forEach(
       m => map.removeLayer(m)
