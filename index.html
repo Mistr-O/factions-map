@@ -304,42 +304,40 @@ map.on("mousemove",e=>{
     `X: ${Math.floor(e.latlng.lng)} | Z: ${Math.floor(-e.latlng.lat)}`;
 });/* HEAT */
 
-function addHeat(lat,lng){
-
-  if(!heatEnabled) return;
-
-  const h = L.circleMarker([lat,lng],{
-    radius:26,
-    color:"red",
-    fillColor:"red",
-    fillOpacity:.04,
-    stroke:false
-  }).addTo(map);
-
-  heatLayers.push(h);
-}
-
-function clearHeat(){
-
-  heatLayers.forEach(h=>map.removeLayer(h));
-
-  heatLayers.length = 0;
-}
-
 document.getElementById("heatBtn").onclick = ()=>{
 
   heatEnabled = !heatEnabled;
 
   if(heatEnabled){
 
+    const points = [];
+
     Object.values(knownPlayers).forEach(p=>{
 
-      addHeat(p.lat,p.lng);
+      if(p.lat !== undefined){
+
+        points.push([
+          p.lat,
+          p.lng,
+          1
+        ]);
+      }
+
     });
+
+    heatLayer = L.heatLayer(points,{
+      radius:40,
+      blur:30,
+      maxZoom:12
+    }).addTo(map);
 
   }else{
 
-    clearHeat();
+    if(heatLayer){
+      map.removeLayer(heatLayer);
+      heatLayer = null;
+    }
+
   }
 };
 
