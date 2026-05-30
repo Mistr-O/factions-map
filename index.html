@@ -312,22 +312,15 @@ document.getElementById("heatBtn").onclick = ()=>{
   if(heatEnabled){
 
     buildHeatInspector();
-    } catch(err) {
-
-  console.error("LOAD PLAYERS ERROR:", err);
-
-}
 
   }else{
 
     hotspotMarkers.forEach(
-      m=>map.removeLayer(m)
+      m => map.removeLayer(m)
     );
 
     hotspotMarkers.length = 0;
-
   }
-
 };
 /* RESET */
 
