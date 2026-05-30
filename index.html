@@ -412,12 +412,18 @@ async function loadPlayers(){
 
   try{
 
-    const r =
-    await fetch(
-      "https://factions-map.onrender.com/players"
-    );
+   console.log("loadPlayers called");
 
-    const data = await r.json();
+const r =
+await fetch(
+  "https://factions-map.onrender.com/players"
+);
+
+console.log("Status:", r.status);
+
+const data = await r.json();
+
+console.log("Data:", data);
 
     const online = {};
 
