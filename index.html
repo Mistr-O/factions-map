@@ -478,6 +478,37 @@ console.log("Data:", data);
   y,
   time:Date.now()
 });
+      const cell = 50;
+
+const gx =
+Math.round(x / cell) * cell;
+
+const gz =
+Math.round(z / cell) * cell;
+
+const key = `${gx}:${gz}`;
+
+if(!locationData[key]){
+
+  locationData[key] = {};
+}
+
+if(!locationData[key][p.Username]){
+
+  locationData[key][p.Username] = {
+
+    firstSeen: Date.now(),
+    lastSeen: Date.now(),
+    yValues: []
+
+  };
+}
+
+locationData[key][p.Username]
+.lastSeen = Date.now();
+
+locationData[key][p.Username]
+.yValues.push(y);
 
       if(player.history.length > 5000){
 
