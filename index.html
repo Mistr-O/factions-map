@@ -313,23 +313,19 @@ document.getElementById("heatBtn").onclick = ()=>{
 
   if(heatEnabled){
 
-    const points = [];
+    buildHeatInspector();
 
-Object.values(knownPlayers).forEach(p=>{
+  }else{
 
-  if(!p.history) return;
+    hotspotMarkers.forEach(
+      m=>map.removeLayer(m)
+    );
 
-  p.history.forEach(pos=>{
+    hotspotMarkers.length = 0;
 
-    points.push([
-      pos.lat,
-      pos.lng,
-      1
-    ]);
+  }
 
-  });
-
-});
+};
 
 heatLayer = L.heatLayer(points,{
   radius:80,
