@@ -519,6 +519,28 @@ console.log("Data:", data);
     renderPlayers();
 
     savePlayers();
+    if(heatEnabled && heatLayer){
+
+  const points = [];
+
+  Object.values(knownPlayers).forEach(p=>{
+
+    if(!p.history) return;
+
+    p.history.forEach(pos=>{
+
+      points.push([
+        pos.lat,
+        pos.lng,
+        1
+      ]);
+
+    });
+
+  });
+
+  heatLayer.setLatLngs(points);
+}
 
   } catch(err) {
 
