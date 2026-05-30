@@ -1,4 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FactionsVR Tracker</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+
+html,
+body,
+#map{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#000;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.leaflet-container{
+  background:#000 !important;
+}
+
+#sidebar{
+  position:absolute;
+  left:14px;
+  top:14px;
+  width:360px;
+  height:calc(100vh - 28px);
+  background:rgba(8,8,8,.92);
+  border-radius:18px;
+  z-index:9999;
+  color:white;
+  overflow:hidden;
+}
+
+#header{
+  padding:20px;
+}
+
+#title{
+  font-size:26px;
+  font-weight:700;
+}
+
+#subtitle{
+  color:#888;
+}
+
+#searchWrap{
+  padding:14px;
+}
+
+#search{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+}
+
+#players{
+  padding:14px;
+  overflow-y:auto;
+  height:80%;
+}
+
+.player{
+  background:#111;
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+
+.playerName{
+  color:white;
+  font-weight:bold;
+}
+
+.onlineStatus{
+  color:#5cff84;
+}
+
+.offlineStatus{
+  color:#999;
+}
+
+button{
+  border:none;
+  border-radius:10px;
+  padding:8px 12px;
+  cursor:pointer;
+  color:white;
+  background:#d63031;
+}
+
+.secondary{
+  background:#222;
+}
+
+#topbar{
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:9999;
+}
+
+#coordsBox{
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  background:#111;
+  color:white;
+  padding:12px;
+  border-radius:12px;
+  z-index:9999;
+}
+
+</style>
+
+</head>
 <body>
+
 
 <div id="map"></div>
 
@@ -42,13 +173,24 @@
 /* MAP */
 
 const map = L.map("map",{
-  crs:L.CRS.Simple,
-  minZoom:-10,
-  maxZoom:12,
-  zoomSnap:.25,
-  zoomDelta:.25,
-  attributionControl:false
+  crs: L.CRS.Simple,
+  minZoom: -10,
+  maxZoom: 12,
+  zoomSnap: 0.25,
+  zoomDelta: 0.25,
+  attributionControl: false
 }).setView([0,0],0);
+
+// Black background
+L.rectangle(
+  [[-100000,-100000],[100000,100000]],
+  {
+    color:"#111",
+    fillColor:"#000",
+    fillOpacity:1,
+    weight:0
+  }
+).addTo(map);
 
 /* GRID */
 
