@@ -323,6 +323,14 @@ document.getElementById("heatBtn").onclick = ()=>{
 
   }else{
 
+    hotspotMarkers.forEach(
+      m => map.removeLayer(m)
+    );
+
+    hotspotMarkers.length = 0;
+
+  }
+};
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
