@@ -687,13 +687,14 @@ function renderPlayers(){
 
       <div class="home">
 
-        🏠 Likely Home:<br>
-
-        ${
-          home
-          ? `X: ${home.x} | Z: ${home.z}`
-          : "Unknown"
-        }
+      ${
+  home
+  ? `
+    X: ${home.x} | Z: ${home.z}<br>
+    Teleports: ${home.teleports}
+  `
+  : "Unknown"
+}
 
       </div>
 
