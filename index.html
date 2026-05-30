@@ -315,16 +315,6 @@ map.on("mousemove",e=>{
 
 function buildHeatInspector(){
 
-document.getElementById("heatBtn").onclick = ()=>{
-
-  heatEnabled = !heatEnabled;
-
-  if(heatEnabled){
-
-    buildHeatInspector();
-
-  }else{
-
   hotspotMarkers.forEach(
     m => map.removeLayer(m)
   );
@@ -334,11 +324,9 @@ document.getElementById("heatBtn").onclick = ()=>{
   Object.entries(locationData)
   .forEach(([key,data])=>{
 
-    const [x,z] =
-    key.split(":").map(Number);
+    const [x,z] = key.split(":").map(Number);
 
-    const marker =
-    L.circleMarker(
+    const marker = L.circleMarker(
       [-z,x],
       {
         radius:12,
@@ -353,6 +341,26 @@ document.getElementById("heatBtn").onclick = ()=>{
   });
 
 }
+
+document.getElementById("heatBtn").onclick = ()=>{
+
+  heatEnabled = !heatEnabled;
+
+  if(heatEnabled){
+
+    buildHeatInspector();
+
+  }else{
+
+    hotspotMarkers.forEach(
+      m => map.removeLayer(m)
+    );
+
+    hotspotMarkers.length = 0;
+
+  }
+
+};
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
