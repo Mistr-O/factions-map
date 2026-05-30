@@ -320,25 +320,6 @@ document.getElementById("heatBtn").onclick = ()=>{
     hotspotMarkers.forEach(
       m=>map.removeLayer(m)
     );
-
-    hotspotMarkers.length = 0;
-
-  }
-
-};
-
-
-
-  }else{
-
-    if(heatLayer){
-      map.removeLayer(heatLayer);
-      heatLayer = null;
-    }
-
-  }
-};
-
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
