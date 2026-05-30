@@ -312,18 +312,21 @@ document.getElementById("heatBtn").onclick = ()=>{
 
     const points = [];
 
-    Object.values(knownPlayers).forEach(p=>{
+Object.values(knownPlayers).forEach(p=>{
 
-      if(p.lat !== undefined){
+  if(!p.history) return;
 
-        points.push([
-          p.lat,
-          p.lng,
-          1
-        ]);
-      }
+  p.history.forEach(pos=>{
 
-    });
+    points.push([
+      pos.lat,
+      pos.lng,
+      1
+    ]);
+
+  });
+
+});
 
     heatLayer = L.heatLayer(points,{
       radius:40,
