@@ -274,6 +274,9 @@ const markers = {};
 let heatLayer = null;
 let heatEnabled = false;
 
+const locationData = {};
+const hotspotMarkers = [];
+
 const knownPlayers =
 JSON.parse(
   localStorage.getItem("knownPlayers") || "{}"
