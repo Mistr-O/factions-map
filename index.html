@@ -323,14 +323,36 @@ document.getElementById("heatBtn").onclick = ()=>{
 
   }else{
 
-    hotspotMarkers.forEach(
-      m => map.removeLayer(m)
-    );
+  function buildHeatInspector(){
 
-    hotspotMarkers.length = 0;
+  hotspotMarkers.forEach(
+    m => map.removeLayer(m)
+  );
 
-  }
-};
+  hotspotMarkers.length = 0;
+
+  Object.entries(locationData)
+  .forEach(([key,data])=>{
+
+    const [x,z] =
+    key.split(":").map(Number);
+
+    const marker =
+    L.circleMarker(
+      [-z,x],
+      {
+        radius:12,
+        color:"red",
+        fillColor:"red",
+        fillOpacity:0.5
+      }
+    ).addTo(map);
+
+    hotspotMarkers.push(marker);
+
+  });
+
+}
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
