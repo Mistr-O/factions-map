@@ -328,11 +328,12 @@ Object.values(knownPlayers).forEach(p=>{
 
 });
 
-    heatLayer = L.heatLayer(points,{
-      radius:40,
-      blur:30,
-      maxZoom:12
-    }).addTo(map);
+heatLayer = L.heatLayer(points,{
+  radius:80,
+  blur:60,
+  maxZoom:12,
+  minOpacity:0.2
+}).addTo(map);
 
   }else{
 
