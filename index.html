@@ -533,9 +533,11 @@ locationData[key][p.Username]
     renderPlayers();
 
     savePlayers();
-    if(heatEnabled && heatLayer){
+if(heatEnabled){
 
-  const points = [];
+  buildHeatInspector();
+
+}
 
   Object.values(knownPlayers).forEach(p=>{
 
