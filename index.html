@@ -584,7 +584,77 @@ locationData[key][p.Username]
 
   }
 }
-/* RENDER */
+function buildHeatInspector(){
+
+  hotspotMarkers.forEach(
+    m => map.removeLayer(m)
+  );
+
+  hotspotMarkers.length = 0;
+
+  Object.entries(locationData)
+  .forEach(([key,data])=>{
+
+    const [x,z] =
+    key.split(":").map(Number);
+
+    const marker =
+    L.circleMarker(
+      [-z,x],
+      {
+        radius:12,
+        color:"red",
+        fillColor:"red",
+        fillOpacity:0.5
+      }
+    ).addTo(map);
+
+    marker.on("click",()=>{
+
+      let html =
+      "<h3>Players Here</h3>";
+
+      Object.entries(data)
+      .forEach(([name,info])=>{
+
+        const avgY =
+        Math.round(
+
+          info.yValues.reduce(
+            (a,b)=>a+b,
+            0
+          ) /
+
+          info.yValues.length
+        );
+
+        const mins =
+        Math.round(
+          (info.lastSeen -
+          info.firstSeen)
+          / 60000
+        );
+
+        html += `
+          <b>${name}</b><br>
+          Avg Y: ${avgY}<br>
+          Time Here: ${mins} min<br><br>
+        `;
+      });
+
+      L.popup()
+      .setLatLng([-z,x])
+      .setContent(html)
+      .openOn(map);
+
+    });
+
+    hotspotMarkers.push(marker);
+
+  });
+
+}
+  /* RENDER */
 
 function renderPlayers(){
 
