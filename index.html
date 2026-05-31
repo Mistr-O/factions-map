@@ -401,14 +401,14 @@ function buildHeatInspector(){
     const [x,z] = key.split(":").map(Number);
 
     const marker = L.circle(
-      [-z,x],
-      {
-        radius:250,
-        color:"red",
-        fillColor:"red",
-        fillOpacity:0.25
-      }
-    ).addTo(map);
+  [-z,x],
+  {
+    radius:1000,
+    color:"yellow",
+    fillColor:"yellow",
+    fillOpacity:0.7
+  }
+).addTo(map);
 
     marker.on("click",()=>{
 
