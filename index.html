@@ -484,32 +484,40 @@ async function loadPlayers() {
 
   try {
 
-    const response =
-      await fetch(
-        "https://factions-map.onrender.com/players"
-      );
+    const response = await fetch(
+      "https://factions-map.onrender.com/players"
+    );
 
-    const data =
-      await response.json();
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " + response.status
+      );
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (!data.players) {
+      console.error("No players array found");
+      return;
+    }
 
     const online = {};
 
     data.players.forEach(playerData => {
 
-      const x =
-        Math.floor(
-          playerData.Pose.Head.Position[0]
-        );
+      const x = Math.floor(
+        playerData.Pose.Head.Position[0]
+      );
 
-      const y =
-        Math.floor(
-          playerData.Pose.Head.Position[1]
-        );
+      const y = Math.floor(
+        playerData.Pose.Head.Position[1]
+      );
 
-      const z =
-        Math.floor(
-          playerData.Pose.Head.Position[2]
-        );
+      const z = Math.floor(
+        playerData.Pose.Head.Position[2]
+      );
 
       const lat = -z;
       const lng = x;
@@ -519,7 +527,7 @@ async function loadPlayers() {
       if (!knownPlayers[playerData.Username]) {
 
         knownPlayers[playerData.Username] = {
-          history: []
+          history:[]
         };
       }
 
@@ -533,57 +541,16 @@ async function loadPlayers() {
       player.lng = lng;
       player.online = true;
 
-      player.history.push({
-        lat,
-        lng,
-        y,
-        time: Date.now()
-      });
-
-      if (player.history.length > 5000) {
-        player.history.shift();
-      }
-
-      const cell = 250;
-
-      const gx =
-        Math.round(x / cell) * cell;
-
-      const gz =
-        Math.round(z / cell) * cell;
-
-      const key =
-        `${gx}:${gz}`;
-
-      if (!locationData[key]) {
-        locationData[key] = {};
-      }
-
-      if (!locationData[key][playerData.Username]) {
-
-        locationData[key][playerData.Username] = {
-          firstSeen: Date.now(),
-          lastSeen: Date.now(),
-          yValues: []
-        };
-      }
-
-      locationData[key][playerData.Username]
-        .lastSeen = Date.now();
-
-      locationData[key][playerData.Username]
-        .yValues.push(y);
-
       if (!markers[playerData.Username]) {
 
         markers[playerData.Username] =
           L.circleMarker(
-            [lat, lng],
+            [lat,lng],
             {
-              radius: 6,
-              color: "#ff3b3b",
-              fillColor: "#ff3b3b",
-              fillOpacity: 1
+              radius:8,
+              color:"#ff3b3b",
+              fillColor:"#ff3b3b",
+              fillOpacity:1
             }
           ).addTo(map);
 
@@ -591,39 +558,30 @@ async function loadPlayers() {
           .bindTooltip(
             playerData.Username,
             {
-              permanent: true,
-              direction: "top"
+              permanent:true,
+              direction:"top"
             }
           );
 
       } else {
 
         markers[playerData.Username]
-          .setLatLng([lat, lng]);
+          .setLatLng([lat,lng]);
       }
     });
 
-    Object.keys(knownPlayers)
-      .forEach(name => {
-
-        if (!online[name]) {
-          knownPlayers[name].online = false;
-        }
-      });
-
     renderPlayers();
-    savePlayers();
 
-    if (heatEnabled) {
-      buildHeatInspector();
-    }
+  } catch(err) {
 
-  } catch (err) {
+    document.getElementById("players")
+      .innerHTML =
+      `<div style="padding:15px;color:red">
+         API ERROR<br><br>
+         ${err.message}
+       </div>`;
 
-    console.error(
-      "LOAD PLAYERS ERROR:",
-      err
-    );
+    console.error(err);
   }
 }
 
