@@ -297,6 +297,7 @@ function savePlayers() {
 ========================= */
 
 const markers = {};
+const locationData = {};
 const hotspotMarkers = [];
 let heatEnabled = false;
 
@@ -381,14 +382,16 @@ function getLikelyHome(history) {
    HEAT INSPECTOR
 ========================= */
 
+function clearHotspots(){
 
-  hotspotMarkers.forEach(marker => {
+  hotspotMarkers.forEach(marker=>{
     map.removeLayer(marker);
   });
 
   hotspotMarkers.length = 0;
 }
 
+function buildHeatInspector(){
 
   clearHotspots();
 
@@ -408,11 +411,9 @@ function getLikelyHome(history) {
 
     marker.on("click",()=>{
 
-      let html =
-        "<h3>Players Seen Here</h3>";
+      let html = "<h3>Players Seen Here</h3>";
 
       Object.keys(players).forEach(name=>{
-
         html += name + "<br>";
       });
 
@@ -420,14 +421,14 @@ function getLikelyHome(history) {
         .setLatLng([-z,x])
         .setContent(html)
         .openOn(map);
-
     });
 
     hotspotMarkers.push(marker);
-
   });
-
 }
+
+
+  
 /* =========================
    BUTTONS
 ========================= */
