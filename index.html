@@ -392,68 +392,29 @@ function clearHotspots() {
   hotspotMarkers.length = 0;
 }
 
-function buildHeatInspector() {
+function buildHeatInspector(){
 
   clearHotspots();
 
-  Object.entries(locationData)
-    .forEach(([key, players]) => {
+  Object.keys(markers).forEach(name=>{
 
-      const [x, z] =
-        key.split(":").map(Number);
+    const p = knownPlayers[name];
 
-      const marker =
-        L.circleMarker(
-          [-z, x],
-          {
-            radius: 12,
-            color: "red",
-            fillColor: "red",
-            fillOpacity: 0.5
-          }
-        ).addTo(map);
+    if(!p) return;
 
-      marker.on("click", () => {
+    const marker = L.circleMarker(
+      [p.lat,p.lng],
+      {
+        radius:20,
+        color:"red",
+        fillColor:"red",
+        fillOpacity:0.4
+      }
+    ).addTo(map);
 
-        let html =
-          "<h3>Players Here</h3>";
-
-        Object.entries(players)
-          .forEach(([name, info]) => {
-
-            const avgY =
-              Math.round(
-                info.yValues.reduce(
-                  (a, b) => a + b,
-                  0
-                ) /
-                info.yValues.length
-              );
-
-            const mins =
-              Math.round(
-                (info.lastSeen -
-                  info.firstSeen) /
-                60000
-              );
-
-            html += `
-              <b>${name}</b><br>
-              Avg Y: ${avgY}<br>
-              Time Here: ${mins} min<br><br>
-            `;
-          });
-
-        L.popup()
-          .setLatLng([-z, x])
-          .setContent(html)
-          .openOn(map);
-      });
-
-      hotspotMarkers.push(marker);
-    });
+    hotspotMarkers.push(marker);
+  });
 }
-
 /* =========================
    BUTTONS
 ========================= */
