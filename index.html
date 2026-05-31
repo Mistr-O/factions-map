@@ -491,76 +491,66 @@ async function loadPlayers() {
 
     const online = {};
 
-    data.players.forEach(playerData => {
+   data.players.forEach(playerData => {
 
-      const x = Math.floor(
-        playerData.Pose.Head.Position[0]
-      );
+  const x = Math.floor(playerData.Pose.Head.Position[0]);
+  const y = Math.floor(playerData.Pose.Head.Position[1]);
+  const z = Math.floor(playerData.Pose.Head.Position[2]);
 
-      const y = Math.floor(
-        playerData.Pose.Head.Position[1]
-      );
+  const lat = -z;
+  const lng = x;
 
-      const z = Math.floor(
-        playerData.Pose.Head.Position[2]
-      );
+  if(firstPlayer){
+    map.setView([lat,lng],2);
+    firstPlayer = false;
+  }
 
-      const lat = -z;
-      const lng = x;
-      if(firstPlayer){
-  map.setView([lat,lng],2);
-  firstPlayer = false;
-}
+  if(!knownPlayers[playerData.Username]){
+    knownPlayers[playerData.Username] = {
+      history:[]
+    };
+  }
 
-      online[playerData.Username] = true;
+  const player = knownPlayers[playerData.Username];
 
-      if (!knownPlayers[playerData.Username]) {
+  player.x = x;
+  player.y = y;
+  player.z = z;
+  player.lat = lat;
+  player.lng = lng;
+  player.online = true;
 
-        knownPlayers[playerData.Username] = {
-          history:[]
-        };
-      }
+  const key =
+    Math.round(x/250)*250 +
+    ":" +
+    Math.round(z/250)*250;
 
-      const player =
-        knownPlayers[playerData.Username];
+  if(!locationData[key]){
+    locationData[key] = {};
+  }
 
-      player.x = x;
-      player.y = y;
-      player.z = z;
-      player.lat = lat;
-      player.lng = lng;
-      player.online = true;
-      const key =
-  Math.round(x/250)*250 +
-  ":" +
-  Math.round(z/250)*250;
+  if(!locationData[key][playerData.Username]){
+    locationData[key][playerData.Username] = {
+      firstSeen: Date.now(),
+      lastSeen: Date.now(),
+      yValues:[]
+    };
+  }
 
-if(!locationData[key]){
-  locationData[key] = {};
-}
+  locationData[key][playerData.Username].lastSeen = Date.now();
+  locationData[key][playerData.Username].yValues.push(y);
 
-if(!locationData[key]){
-  locationData[key] = {};
-}
+  if (!markers[playerData.Username]) {
 
-locationData[key][playerData.Username].lastSeen = Date.now();
-locationData[key][playerData.Username].yValues.push(y);
-
-if (!markers[playerData.Username]) {
-
-  markers[playerData.Username] =
-    L.circleMarker(
-      [lat,lng],
-      {
+    markers[playerData.Username] =
+      L.circleMarker([lat,lng],{
         radius:8,
         color:"#ff3b3b",
         fillColor:"#ff3b3b",
         fillOpacity:1
-      }
-    ).addTo(map);
+      }).addTo(map);
 
-  markers[playerData.Username]
-    .bindTooltip(
+    markers[playerData.Username].bindTooltip(
       playerData.Username,
       {
         permanent:true,
@@ -568,27 +558,13 @@ if (!markers[playerData.Username]) {
       }
     );
 
-} else {
+  } else {
 
-  markers[playerData.Username]
-    .setLatLng([lat,lng]);
-}
-    });
-
-    renderPlayers();
-
-  } catch(err) {
-
-    document.getElementById("players")
-      .innerHTML =
-      `<div style="padding:15px;color:red">
-         API ERROR<br><br>
-         ${err.message}
-       </div>`;
-
-    console.error(err);
+    markers[playerData.Username]
+      .setLatLng([lat,lng]);
   }
-}
+
+});
 
 /* =========================
    PLAYER LIST
