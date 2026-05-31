@@ -543,45 +543,36 @@ if(!locationData[key]){
   locationData[key] = {};
 }
 
-if(!locationData[key][playerData.Username]){
-  locationData[key][playerData.Username] = {
-    firstSeen: Date.now(),
-    lastSeen: Date.now(),
-    yValues: []
-  };
-}
-
 locationData[key][playerData.Username].lastSeen = Date.now();
 locationData[key][playerData.Username].yValues.push(y);
-};
 
-      if (!markers[playerData.Username]) {
+if (!markers[playerData.Username]) {
 
-        markers[playerData.Username] =
-          L.circleMarker(
-            [lat,lng],
-            {
-              radius:8,
-              color:"#ff3b3b",
-              fillColor:"#ff3b3b",
-              fillOpacity:1
-            }
-          ).addTo(map);
-
-        markers[playerData.Username]
-          .bindTooltip(
-            playerData.Username,
-            {
-              permanent:true,
-              direction:"top"
-            }
-          );
-
-      } else {
-
-        markers[playerData.Username]
-          .setLatLng([lat,lng]);
+  markers[playerData.Username] =
+    L.circleMarker(
+      [lat,lng],
+      {
+        radius:8,
+        color:"#ff3b3b",
+        fillColor:"#ff3b3b",
+        fillOpacity:1
       }
+    ).addTo(map);
+
+  markers[playerData.Username]
+    .bindTooltip(
+      playerData.Username,
+      {
+        permanent:true,
+        direction:"top"
+      }
+    );
+
+} else {
+
+  markers[playerData.Username]
+    .setLatLng([lat,lng]);
+}
     });
 
     renderPlayers();
