@@ -497,6 +497,10 @@ async function loadPlayers() {
 
       const lat = -z;
       const lng = x;
+      if(firstPlayer){
+  map.setView([lat,lng],2);
+  firstPlayer = false;
+}
 
       online[playerData.Username] = true;
 
