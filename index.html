@@ -381,7 +381,6 @@ function getLikelyHome(history) {
    HEAT INSPECTOR
 ========================= */
 
-function clearHotspots() {
 
   hotspotMarkers.forEach(marker => {
     map.removeLayer(marker);
@@ -390,7 +389,6 @@ function clearHotspots() {
   hotspotMarkers.length = 0;
 }
 
-function buildHeatInspector(){
 
   clearHotspots();
 
