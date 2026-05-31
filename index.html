@@ -525,20 +525,18 @@ async function loadPlayers() {
     ":" +
     Math.round(z/250)*250;
 
-  if(!locationData[key]){
-    locationData[key] = {};
-  }
+ locationData[key] ??= {};
 
-  if(!locationData[key][playerData.Username]){
-    locationData[key][playerData.Username] = {
-      firstSeen: Date.now(),
-      lastSeen: Date.now(),
-      yValues:[]
-    };
-  }
+locationData[key][playerData.Username] ??= {
+  firstSeen: Date.now(),
+  lastSeen: Date.now(),
+  yValues: []
+};
 
-  locationData[key][playerData.Username].lastSeen = Date.now();
-  locationData[key][playerData.Username].yValues.push(y);
+const spot = locationData[key][playerData.Username];
+
+spot.lastSeen = Date.now();
+spot.yValues.push(y);
 
   if (!markers[playerData.Username]) {
 
