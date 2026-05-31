@@ -414,9 +414,19 @@ function buildHeatInspector(){
 
       let html = "<h3>Players Seen Here</h3>";
 
-      Object.keys(players).forEach(name=>{
-        html += name + "<br>";
-      });
+      Object.entries(players).forEach(([name, info])=>{
+
+  const avgY =
+    Math.round(
+      info.yValues.reduce((a,b)=>a+b,0) /
+      info.yValues.length
+    );
+
+  html += `
+    <b>${name}</b><br>
+    Avg Y: ${avgY}<br><br>
+  `;
+});
 
       L.popup()
         .setLatLng([-z,x])
