@@ -315,26 +315,60 @@ map.on("mousemove",e=>{
 
 function buildHeatInspector(){
 
+  hotspotMarkers.forEach(
+    m => map.removeLayer(m)
+  );
 
-document.getElementById("heatBtn").onclick = ()=>{
+  hotspotMarkers.length = 0;
 
-  heatEnabled = !heatEnabled;
+  Object.entries(locationData).forEach(([key,data])=>{
 
-  if(heatEnabled){
+    const [x,z] = key.split(":").map(Number);
 
-    buildHeatInspector();
+    const marker = L.circleMarker(
+      [-z,x],
+      {
+        radius:12,
+        color:"red",
+        fillColor:"red",
+        fillOpacity:0.5
+      }
+    ).addTo(map);
 
-  }else{
+    marker.on("click",()=>{
 
-    hotspotMarkers.forEach(
-      m => map.removeLayer(m)
-    );
+      let html = "<h3>Players Here</h3>";
 
-    hotspotMarkers.length = 0;
+      Object.entries(data).forEach(([name,info])=>{
 
-  }
+        const avgY = Math.round(
+          info.yValues.reduce((a,b)=>a+b,0) /
+          info.yValues.length
+        );
 
-};
+        const mins = Math.round(
+          (info.lastSeen - info.firstSeen) / 60000
+        );
+
+        html += `
+          <b>${name}</b><br>
+          Avg Y: ${avgY}<br>
+          Time Here: ${mins} min<br><br>
+        `;
+      });
+
+      L.popup()
+        .setLatLng([-z,x])
+        .setContent(html)
+        .openOn(map);
+
+    });
+
+    hotspotMarkers.push(marker);
+
+  });
+
+}
 /* RESET */
 
 document.getElementById("resetBtn").onclick = ()=>{
