@@ -490,6 +490,7 @@ async function loadPlayers() {
     }
 
     const online = {};
+    data.players.forEach(playerData => {
 
     
   const x = Math.floor(playerData.Pose.Head.Position[0]);
