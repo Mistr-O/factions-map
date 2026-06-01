@@ -492,14 +492,20 @@ async function loadPlayers() {
     const online = {};
 
    data.players.forEach(playerData => {
-     Object.keys(knownPlayers).forEach(name => {
+
+  online[playerData.Username] = true;
+
+  // all your existing player code
+
+});
+
+Object.keys(knownPlayers).forEach(name => {
 
   if (!online[name]) {
     knownPlayers[name].online = false;
   }
 
 });
-
   const x = Math.floor(playerData.Pose.Head.Position[0]);
   const y = Math.floor(playerData.Pose.Head.Position[1]);
   const z = Math.floor(playerData.Pose.Head.Position[2]);
