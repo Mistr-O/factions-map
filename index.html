@@ -568,7 +568,21 @@ spot.yValues.push(y);
    PLAYER LIST
 ========================= */
 
-function renderPlayers() {
+renderPlayers();
+
+} catch(err) {
+
+  document.getElementById("players").innerHTML =
+  `<div style="padding:15px;color:red">
+     API ERROR<br><br>
+     ${err.message}
+   </div>`;
+
+  console.error(err);
+}
+
+}
+    function renderPlayers() {
 
   const container =
     document.getElementById("players");
