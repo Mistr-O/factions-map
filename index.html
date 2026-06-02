@@ -317,11 +317,6 @@ button {
   font-weight: 800;
 }
 
-.mapTile {
-  image-rendering: pixelated;
-  background: #050505;
-}
-
 .cubeIcon {
   background: transparent;
 }
@@ -425,7 +420,7 @@ button {
         <div id="title">FactionsVR</div>
         <div id="livePill">LIVE</div>
       </div>
-      <div id="subtitle">Player tracker with tiles, hands, and homes</div>
+      <div id="subtitle">Player tracker with head, hands, and homes</div>
     </div>
 
     <div id="stats">
@@ -474,10 +469,8 @@ button {
 
 <script>
 const PASSWORD = "6768";
-const UNLOCK_KEY = "factionsTrackerPasswordRemembered";
 const TELEPORT_DISTANCE = 50;
 const MIN_HOME_TELEPORTS = 2;
-const TILE_CACHE_KEY = Date.now();
 
 const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
 
@@ -485,7 +478,6 @@ const playerParts = {};
 const hotspotMarkers = [];
 
 let gameMap = null;
-let tileLayer = null;
 let gridLayer = null;
 let heatLayer = null;
 let heatEnabled = false;
@@ -505,11 +497,6 @@ function unlock() {
     return;
   }
 
-  localStorage.setItem(UNLOCK_KEY, "true");
-  showApp();
-}
-
-function showApp() {
   lockScreen.style.display = "none";
   app.style.display = "block";
   startApp();
@@ -523,13 +510,9 @@ passwordInput.addEventListener("keydown", event => {
   }
 });
 
-if (localStorage.getItem(UNLOCK_KEY) === "true") {
-  showApp();
-} else {
-  setTimeout(() => {
-    passwordInput.focus();
-  }, 100);
-}
+setTimeout(() => {
+  passwordInput.focus();
+}, 100);
 
 function savePlayers() {
   localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
@@ -764,8 +747,6 @@ function setupMap() {
     attributionControl: false
   }).setView([0, 0], 0);
 
-  setupTileLayer();
-
   gridLayer = L.layerGroup().addTo(gameMap);
 
   heatLayer = L.heatLayer([], {
@@ -795,46 +776,6 @@ function setupMap() {
   setTimeout(() => {
     gameMap.invalidateSize();
   }, 100);
-}
-
-function setupTileLayer() {
-  tileLayer = L.gridLayer({
-    tileSize: 256,
-    noWrap: true,
-    minZoom: -10,
-    maxZoom: 16,
-    opacity: 1,
-    zIndex: 1
-  });
-
-  tileLayer.createTile = function(coords, done) {
-    const tile = document.createElement("img");
-
-    tile.className = "mapTile";
-    tile.alt = "";
-    tile.width = 256;
-    tile.height = 256;
-
-    const chunkX = coords.x;
-    const chunkY = coords.y;
-    const chunkZoom = coords.z;
-
-    tile.onload = function() {
-      done(null, tile);
-    };
-
-    tile.onerror = function() {
-      tile.style.background = "#050505";
-      done(null, tile);
-    };
-
-    tile.src =
-      `https://wild.factionsvr.com/api/map/chunk/${chunkX}/${chunkY}/${chunkZoom}?t=${TILE_CACHE_KEY}`;
-
-    return tile;
-  };
-
-  tileLayer.addTo(gameMap);
 }
 
 function drawGrid() {
