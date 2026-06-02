@@ -11,9 +11,9 @@
 <style>
 :root {
   --bg: #050505;
-  --panel: rgba(12, 12, 14, 0.95);
+  --panel: rgba(12, 12, 14, 0.96);
   --panel2: #121216;
-  --line: rgba(255, 255, 255, 0.09);
+  --line: rgba(255, 255, 255, 0.1);
   --muted: #a0a0a8;
   --red: #ff3f3f;
   --blue: #45a3ff;
@@ -267,7 +267,7 @@ button {
   position: absolute;
   top: 14px;
   right: 14px;
-  z-index: 9999;
+  z-index: 12000;
   display: flex;
   gap: 8px;
 }
@@ -276,13 +276,32 @@ button {
   position: absolute;
   top: 58px;
   right: 14px;
-  z-index: 9999;
+  z-index: 13000;
   display: none;
+  flex-direction: column;
   gap: 8px;
-  background: var(--panel);
+  min-width: 260px;
+  background: rgba(12, 12, 14, 0.98);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px;
+  color: white;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.55);
+}
+
+#randomChoices {
+  display: flex;
+  gap: 8px;
+}
+
+#randomChoices button {
+  flex: 1;
+}
+
+#randomMessage {
+  color: #ddd;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 #coordsBox {
@@ -296,6 +315,35 @@ button {
   border-radius: 8px;
   z-index: 9999;
   font-weight: 800;
+}
+
+.cubeIcon {
+  background: transparent;
+}
+
+.cubeMarker {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 2px solid rgba(255,255,255,0.9);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.8),
+    0 0 18px currentColor;
+}
+
+.cubeHead {
+  background: #ff3f3f;
+  color: #ff3f3f;
+}
+
+.cubeLeft {
+  background: #45a3ff;
+  color: #45a3ff;
+}
+
+.cubeRight {
+  background: #ffe15a;
+  color: #ffe15a;
 }
 
 .leaflet-tooltip {
@@ -338,10 +386,6 @@ button {
     right: 14px;
     top: auto;
     bottom: 106px;
-  }
-
-  #randomPanel button {
-    flex: 1;
   }
 
   #coordsBox {
@@ -410,8 +454,11 @@ button {
   </div>
 
   <div id="randomPanel">
-    <button id="skyBaseBtn">Sky Base</button>
-    <button id="undergroundBtn" class="secondary">Underground</button>
+    <div id="randomChoices">
+      <button id="skyBaseBtn">Sky Base</button>
+      <button id="undergroundBtn" class="secondary">Underground</button>
+    </div>
+    <div id="randomMessage">Pick a base type.</div>
   </div>
 
   <div id="coordsBox">X: 0 | Z: 0</div>
@@ -421,10 +468,6 @@ button {
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <script>
-/* =========================
-   GLOBALS
-========================= */
-
 const PASSWORD = "6768";
 const TELEPORT_DISTANCE = 50;
 const MIN_HOME_TELEPORTS = 2;
@@ -440,10 +483,6 @@ let heatLayer = null;
 let heatEnabled = false;
 let firstPlayer = true;
 let appStarted = false;
-
-/* =========================
-   PASSWORD
-========================= */
 
 const lockScreen = document.getElementById("lockScreen");
 const app = document.getElementById("app");
@@ -475,17 +514,9 @@ setTimeout(() => {
   passwordInput.focus();
 }, 100);
 
-/* =========================
-   STORAGE
-========================= */
-
 function savePlayers() {
   localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
 }
-
-/* =========================
-   HELPERS
-========================= */
 
 function escapeHTML(value) {
   return String(value)
@@ -497,7 +528,7 @@ function escapeHTML(value) {
 }
 
 function copy(text) {
-  navigator.clipboard.writeText(text);
+  navigator.clipboard.writeText(text).catch(() => {});
 }
 
 function formatTime(ms) {
@@ -553,20 +584,6 @@ function updateStats() {
   document.getElementById("heatCount").innerText = heatPoints;
 }
 
-function updateOnlineTime(player) {
-  const now = Date.now();
-
-  if (!player.totalOnlineTime) {
-    player.totalOnlineTime = 0;
-  }
-
-  if (player.onlineSince) {
-    player.totalOnlineTime += now - player.onlineSince;
-  }
-
-  player.onlineSince = now;
-}
-
 function addPlayerHistory(player, x, y, z) {
   if (!Array.isArray(player.history)) {
     player.history = [];
@@ -593,10 +610,6 @@ function addPlayerHistory(player, x, y, z) {
     player.history.splice(0, player.history.length - 2000);
   }
 }
-
-/* =========================
-   POSE / HAND DETECTION
-========================= */
 
 function readPosition(value) {
   if (!value) {
@@ -700,7 +713,9 @@ function getPlayerBody(playerData) {
     "left controller",
     "lhand",
     "handleft",
-    "controllerleft"
+    "controllerleft",
+    "leftpalm",
+    "left palm"
   ]);
 
   const rightHandPosition = findPositionByName(pose, [
@@ -710,7 +725,9 @@ function getPlayerBody(playerData) {
     "right controller",
     "rhand",
     "handright",
-    "controllerright"
+    "controllerright",
+    "rightpalm",
+    "right palm"
   ]);
 
   return {
@@ -719,10 +736,6 @@ function getPlayerBody(playerData) {
     rightHand: pointFromPosition(rightHandPosition)
   };
 }
-
-/* =========================
-   MAP
-========================= */
 
 function setupMap() {
   gameMap = L.map("map", {
@@ -752,6 +765,7 @@ function setupMap() {
   });
 
   gameMap.on("zoom move", drawGrid);
+  gameMap.on("zoomend", updateAllCubeIcons);
 
   gameMap.on("mousemove", event => {
     updateCoordsBox(event.latlng);
@@ -817,31 +831,58 @@ function drawGrid() {
   }
 }
 
-/* =========================
-   HEAD AND HAND MARKERS
-========================= */
+function cubeSize(type) {
+  const zoom = gameMap ? gameMap.getZoom() : 0;
+  const zoomOutBoost = Math.max(0, Math.abs(Math.min(0, zoom))) * 5;
 
-function createBodyMarker(point, color, radius, label) {
-  const marker = L.circleMarker(
+  if (type === "head") {
+    return Math.min(42, 16 + zoomOutBoost);
+  }
+
+  return Math.min(38, 14 + zoomOutBoost);
+}
+
+function cubeIcon(type) {
+  const size = cubeSize(type);
+  const className =
+    type === "head"
+      ? "cubeHead"
+      : type === "left"
+        ? "cubeLeft"
+        : "cubeRight";
+
+  return L.divIcon({
+    className: "cubeIcon",
+    html: `<div class="cubeMarker ${className}"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2]
+  });
+}
+
+function createCubeMarker(point, type) {
+  const marker = L.marker(
     [point.lat, point.lng],
     {
-      radius,
-      color,
-      fillColor: color,
-      fillOpacity: 1,
-      weight: 2
+      icon: cubeIcon(type),
+      zIndexOffset: type === "head" ? 600 : 1200
     }
   ).addTo(gameMap);
 
-  marker.bindTooltip(
-    label,
-    {
-      permanent: true,
-      direction: "top"
-    }
-  );
+  marker.cubeType = type;
 
   return marker;
+}
+
+function updateAllCubeIcons() {
+  Object.values(playerParts).forEach(parts => {
+    ["head", "leftHand", "rightHand"].forEach(key => {
+      const marker = parts[key];
+
+      if (marker && marker.cubeType) {
+        marker.setIcon(cubeIcon(marker.cubeType));
+      }
+    });
+  });
 }
 
 function updatePlayerBody(username, body) {
@@ -862,11 +903,13 @@ function updatePlayerBody(username, body) {
   const parts = playerParts[username];
 
   if (!parts.head) {
-    parts.head = createBodyMarker(
-      body.head,
-      "#ff3f3f",
-      9,
-      escapeHTML(username)
+    parts.head = createCubeMarker(body.head, "head");
+    parts.head.bindTooltip(
+      escapeHTML(username),
+      {
+        permanent: true,
+        direction: "top"
+      }
     );
   } else {
     parts.head.setLatLng([body.head.lat, body.head.lng]);
@@ -874,7 +917,7 @@ function updatePlayerBody(username, body) {
 
   if (body.leftHand) {
     if (!parts.leftHand) {
-      parts.leftHand = createBodyMarker(body.leftHand, "#45a3ff", 6, "L");
+      parts.leftHand = createCubeMarker(body.leftHand, "left");
     } else {
       parts.leftHand.setLatLng([body.leftHand.lat, body.leftHand.lng]);
     }
@@ -886,8 +929,8 @@ function updatePlayerBody(username, body) {
           [body.leftHand.lat, body.leftHand.lng]
         ],
         {
-          color: "rgba(69, 163, 255, 0.65)",
-          weight: 2,
+          color: "rgba(69, 163, 255, 0.95)",
+          weight: 4,
           interactive: false
         }
       ).addTo(gameMap);
@@ -901,7 +944,7 @@ function updatePlayerBody(username, body) {
 
   if (body.rightHand) {
     if (!parts.rightHand) {
-      parts.rightHand = createBodyMarker(body.rightHand, "#ffe15a", 6, "R");
+      parts.rightHand = createCubeMarker(body.rightHand, "right");
     } else {
       parts.rightHand.setLatLng([body.rightHand.lat, body.rightHand.lng]);
     }
@@ -913,8 +956,8 @@ function updatePlayerBody(username, body) {
           [body.rightHand.lat, body.rightHand.lng]
         ],
         {
-          color: "rgba(255, 225, 90, 0.65)",
-          weight: 2,
+          color: "rgba(255, 225, 90, 0.95)",
+          weight: 4,
           interactive: false
         }
       ).addTo(gameMap);
@@ -926,10 +969,6 @@ function updatePlayerBody(username, body) {
     }
   }
 }
-
-/* =========================
-   LIKELY HOME
-========================= */
 
 function getLikelyHome(player) {
   const history = player.history;
@@ -994,9 +1033,9 @@ function getAllLikelyHomes() {
   return homes;
 }
 
-/* =========================
-   RANDOM HOME
-========================= */
+function setRandomMessage(text) {
+  document.getElementById("randomMessage").innerText = text;
+}
 
 function showRandomHome(type) {
   const homes = getAllLikelyHomes();
@@ -1014,7 +1053,11 @@ function showRandomHome(type) {
   });
 
   if (!filtered.length) {
-    alert("No homes found for that type yet.");
+    setRandomMessage(
+      type === "sky"
+        ? "No sky bases found yet. Need likely homes with Y over 230."
+        : "No underground bases found yet. Need likely homes with Y under 40."
+    );
     return;
   }
 
@@ -1036,23 +1079,25 @@ function showRandomHome(type) {
     .openOn(gameMap);
 
   copy(`${chosen.x} ${chosen.y} ${chosen.z}`);
-}
 
-/* =========================
-   HEAT MAP
-========================= */
+  setRandomMessage(
+    `${type === "sky" ? "Sky base" : "Underground"}: ${chosen.name} | ${chosen.x} ${chosen.y} ${chosen.z}`
+  );
+}
 
 function buildHeatData() {
   const buckets = {};
   const points = getAllHistoryPoints();
 
   points.forEach(point => {
-    const key = `${Math.round(point.x / 90) * 90}:${Math.round(point.z / 90) * 90}`;
+    const x = Math.round(point.x / 90) * 90;
+    const z = Math.round(point.z / 90) * 90;
+    const key = `${x}:${z}`;
 
     if (!buckets[key]) {
       buckets[key] = {
-        x: Math.round(point.x / 90) * 90,
-        z: Math.round(point.z / 90) * 90,
+        x,
+        z,
         count: 0,
         yTotal: 0
       };
@@ -1154,10 +1199,6 @@ function buildHeatInspector(existingBuckets) {
     });
 }
 
-/* =========================
-   BUTTONS
-========================= */
-
 function setupButtons() {
   document.getElementById("heatBtn").onclick = () => {
     heatEnabled = !heatEnabled;
@@ -1175,7 +1216,13 @@ function setupButtons() {
 
   document.getElementById("randomHomeBtn").onclick = () => {
     const panel = document.getElementById("randomPanel");
-    panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+
+    if (panel.style.display === "flex") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "flex";
+      setRandomMessage("Pick Sky Base or Underground.");
+    }
   };
 
   document.getElementById("skyBaseBtn").onclick = () => {
@@ -1191,11 +1238,10 @@ function setupButtons() {
   };
 }
 
-/* =========================
-   PLAYER FETCH
-========================= */
-
 async function loadPlayers() {
+  const now = Date.now();
+  const seenNames = new Set();
+
   try {
     const response = await fetch("https://factions-map.onrender.com/players");
 
@@ -1208,11 +1254,6 @@ async function loadPlayers() {
     if (!data.players) {
       throw new Error("No players array found");
     }
-
-    Object.keys(knownPlayers).forEach(name => {
-      knownPlayers[name].online = false;
-      knownPlayers[name].onlineSince = null;
-    });
 
     data.players.forEach(playerData => {
       const username = playerData.Username || playerData.username || playerData.Name;
@@ -1228,6 +1269,8 @@ async function loadPlayers() {
         return;
       }
 
+      seenNames.add(username);
+
       const x = body.head.x;
       const y = body.head.y;
       const z = body.head.z;
@@ -1242,21 +1285,25 @@ async function loadPlayers() {
       if (!knownPlayers[username]) {
         knownPlayers[username] = {
           history: [],
-          totalOnlineTime: 0
+          totalOnlineTime: 0,
+          lastOnlineTick: null
         };
       }
 
       const player = knownPlayers[username];
 
-      updateOnlineTime(player);
+      if (player.lastOnlineTick) {
+        player.totalOnlineTime = (player.totalOnlineTime || 0) + (now - player.lastOnlineTick);
+      }
 
+      player.lastOnlineTick = now;
       player.x = x;
       player.y = y;
       player.z = z;
       player.lat = lat;
       player.lng = lng;
       player.online = true;
-      player.lastSeen = Date.now();
+      player.lastSeen = now;
       player.hasLeftHand = !!body.leftHand;
       player.hasRightHand = !!body.rightHand;
 
@@ -1272,6 +1319,13 @@ async function loadPlayers() {
       updatePlayerBody(username, body);
     });
 
+    Object.entries(knownPlayers).forEach(([name, player]) => {
+      if (!seenNames.has(name)) {
+        player.online = false;
+        player.lastOnlineTick = null;
+      }
+    });
+
     savePlayers();
     refreshHeatMap();
     renderPlayers();
@@ -1285,10 +1339,6 @@ async function loadPlayers() {
     console.error(err);
   }
 }
-
-/* =========================
-   PLAYER LIST
-========================= */
 
 function renderPlayers() {
   const container = document.getElementById("players");
@@ -1397,20 +1447,12 @@ function renderPlayers() {
   updateStats();
 }
 
-/* =========================
-   SEARCH
-========================= */
-
 function setupSearch() {
   document.getElementById("search").addEventListener(
     "input",
     renderPlayers
   );
 }
-
-/* =========================
-   START
-========================= */
 
 function startApp() {
   if (appStarted) {
