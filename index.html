@@ -490,16 +490,13 @@ async function loadPlayers() {
     }
 
     const online = {};
-    data.players.forEach(playerData => {
+data.players.forEach(playerData => {
 
-    
   const x = Math.floor(playerData.Pose.Head.Position[0]);
   const y = Math.floor(playerData.Pose.Head.Position[1]);
   const z = Math.floor(playerData.Pose.Head.Position[2]);
-    online[playerData.Username] = true;
-});
-  }
-});
+
+  online[playerData.Username] = true;
 
 
   const lat = -z;
