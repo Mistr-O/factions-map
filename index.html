@@ -490,6 +490,10 @@ async function loadPlayers() {
     }
 
     const online = {};
+    Object.keys(knownPlayers).forEach(name => {
+  knownPlayers[name].online = false;
+});
+
 data.players.forEach(playerData => {
 
   const x = Math.floor(playerData.Pose.Head.Position[0]);
