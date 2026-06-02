@@ -14,7 +14,6 @@
   --panel: rgba(12, 12, 14, 0.95);
   --panel2: #121216;
   --line: rgba(255, 255, 255, 0.09);
-  --text: #f5f5f6;
   --muted: #a0a0a8;
   --red: #ff3f3f;
   --blue: #45a3ff;
@@ -103,7 +102,7 @@ body,
   position: absolute;
   left: 14px;
   top: 14px;
-  width: 370px;
+  width: 380px;
   height: calc(100vh - 28px);
   background: var(--panel);
   border: 1px solid var(--line);
@@ -273,6 +272,19 @@ button {
   gap: 8px;
 }
 
+#randomPanel {
+  position: absolute;
+  top: 58px;
+  right: 14px;
+  z-index: 9999;
+  display: none;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+
 #coordsBox {
   position: absolute;
   right: 14px;
@@ -321,6 +333,17 @@ button {
     flex: 1;
   }
 
+  #randomPanel {
+    left: 14px;
+    right: 14px;
+    top: auto;
+    bottom: 106px;
+  }
+
+  #randomPanel button {
+    flex: 1;
+  }
+
   #coordsBox {
     left: 14px;
     right: 14px;
@@ -353,7 +376,7 @@ button {
         <div id="title">FactionsVR</div>
         <div id="livePill">LIVE</div>
       </div>
-      <div id="subtitle">Player tracker with head and hands</div>
+      <div id="subtitle">Player tracker with head, hands, and homes</div>
     </div>
 
     <div id="stats">
@@ -382,7 +405,13 @@ button {
 
   <div id="topbar">
     <button id="heatBtn">Show Heat</button>
+    <button id="randomHomeBtn" class="secondary">Random Home</button>
     <button id="resetBtn" class="secondary">Reset View</button>
+  </div>
+
+  <div id="randomPanel">
+    <button id="skyBaseBtn">Sky Base</button>
+    <button id="undergroundBtn" class="secondary">Underground</button>
   </div>
 
   <div id="coordsBox">X: 0 | Z: 0</div>
@@ -397,6 +426,8 @@ button {
 ========================= */
 
 const PASSWORD = "6768";
+const TELEPORT_DISTANCE = 50;
+const MIN_HOME_TELEPORTS = 2;
 
 const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
 
@@ -469,114 +500,25 @@ function copy(text) {
   navigator.clipboard.writeText(text);
 }
 
-function clusterKey(x, z, size) {
-  return `${Math.round(x / size) * size}:${Math.round(z / size) * size}`;
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  return `${minutes}m`;
 }
 
-function parseKey(key) {
-  return key.split(":").map(Number);
+function coordKey(x, y, z) {
+  return `${x}:${y}:${z}`;
 }
 
 function updateCoordsBox(latlng) {
   document.getElementById("coordsBox").innerText =
     `X: ${Math.floor(latlng.lng)} | Z: ${Math.floor(-latlng.lat)}`;
-}
-
-function getPositionFromPart(part) {
-  if (!part) {
-    return null;
-  }
-
-  if (Array.isArray(part.Position)) {
-    return part.Position;
-  }
-
-  if (Array.isArray(part.position)) {
-    return part.position;
-  }
-
-  if (part.Transform && Array.isArray(part.Transform.Position)) {
-    return part.Transform.Position;
-  }
-
-  if (part.transform && Array.isArray(part.transform.position)) {
-    return part.transform.position;
-  }
-
-  return null;
-}
-
-function getPosePart(pose, names) {
-  if (!pose) {
-    return null;
-  }
-
-  for (const name of names) {
-    if (pose[name]) {
-      const position = getPositionFromPart(pose[name]);
-
-      if (position) {
-        return position;
-      }
-    }
-  }
-
-  return null;
-}
-
-function pointFromPosition(position) {
-  if (!Array.isArray(position) || position.length < 3) {
-    return null;
-  }
-
-  return {
-    x: Math.floor(position[0]),
-    y: Math.floor(position[1]),
-    z: Math.floor(position[2]),
-    lat: -Math.floor(position[2]),
-    lng: Math.floor(position[0])
-  };
-}
-
-function getPlayerBody(playerData) {
-  const pose = playerData.Pose || playerData.pose;
-
-  const headPosition = getPosePart(pose, [
-    "Head",
-    "head",
-    "HMD",
-    "hmd",
-    "Camera",
-    "camera"
-  ]);
-
-  const leftHandPosition = getPosePart(pose, [
-    "LeftHand",
-    "leftHand",
-    "LeftController",
-    "leftController",
-    "Left",
-    "left",
-    "LHand",
-    "lHand"
-  ]);
-
-  const rightHandPosition = getPosePart(pose, [
-    "RightHand",
-    "rightHand",
-    "RightController",
-    "rightController",
-    "Right",
-    "right",
-    "RHand",
-    "rHand"
-  ]);
-
-  return {
-    head: pointFromPosition(headPosition),
-    leftHand: pointFromPosition(leftHandPosition),
-    rightHand: pointFromPosition(rightHandPosition)
-  };
 }
 
 function getAllHistoryPoints() {
@@ -611,6 +553,20 @@ function updateStats() {
   document.getElementById("heatCount").innerText = heatPoints;
 }
 
+function updateOnlineTime(player) {
+  const now = Date.now();
+
+  if (!player.totalOnlineTime) {
+    player.totalOnlineTime = 0;
+  }
+
+  if (player.onlineSince) {
+    player.totalOnlineTime += now - player.onlineSince;
+  }
+
+  player.onlineSince = now;
+}
+
 function addPlayerHistory(player, x, y, z) {
   if (!Array.isArray(player.history)) {
     player.history = [];
@@ -621,7 +577,7 @@ function addPlayerHistory(player, x, y, z) {
   if (last) {
     const moved = Math.hypot(x - last.x, z - last.z);
 
-    if (moved < 8 && Math.abs(y - last.y) < 3) {
+    if (moved < 1 && Math.abs(y - last.y) < 1) {
       return;
     }
   }
@@ -633,9 +589,135 @@ function addPlayerHistory(player, x, y, z) {
     time: Date.now()
   });
 
-  if (player.history.length > 1500) {
-    player.history.splice(0, player.history.length - 1500);
+  if (player.history.length > 2000) {
+    player.history.splice(0, player.history.length - 2000);
   }
+}
+
+/* =========================
+   POSE / HAND DETECTION
+========================= */
+
+function readPosition(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (
+    Array.isArray(value) &&
+    value.length >= 3 &&
+    typeof value[0] === "number" &&
+    typeof value[1] === "number" &&
+    typeof value[2] === "number"
+  ) {
+    return value;
+  }
+
+  if (Array.isArray(value.Position)) {
+    return value.Position;
+  }
+
+  if (Array.isArray(value.position)) {
+    return value.position;
+  }
+
+  if (value.Transform && Array.isArray(value.Transform.Position)) {
+    return value.Transform.Position;
+  }
+
+  if (value.transform && Array.isArray(value.transform.position)) {
+    return value.transform.position;
+  }
+
+  return null;
+}
+
+function findPositionByName(object, wantedNames) {
+  if (!object || typeof object !== "object") {
+    return null;
+  }
+
+  const wanted = wantedNames.map(name => name.toLowerCase());
+
+  for (const key in object) {
+    const lowerKey = key.toLowerCase();
+
+    if (wanted.some(name => lowerKey.includes(name))) {
+      const directPosition = readPosition(object[key]);
+
+      if (directPosition) {
+        return directPosition;
+      }
+    }
+  }
+
+  for (const key in object) {
+    const value = object[key];
+
+    if (value && typeof value === "object") {
+      const found = findPositionByName(value, wantedNames);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return null;
+}
+
+function pointFromPosition(position) {
+  if (!Array.isArray(position) || position.length < 3) {
+    return null;
+  }
+
+  const x = Math.floor(position[0]);
+  const y = Math.floor(position[1]);
+  const z = Math.floor(position[2]);
+
+  return {
+    x,
+    y,
+    z,
+    lat: -z,
+    lng: x
+  };
+}
+
+function getPlayerBody(playerData) {
+  const pose = playerData.Pose || playerData.pose || playerData;
+
+  const headPosition = findPositionByName(pose, [
+    "head",
+    "hmd",
+    "camera"
+  ]);
+
+  const leftHandPosition = findPositionByName(pose, [
+    "lefthand",
+    "left hand",
+    "leftcontroller",
+    "left controller",
+    "lhand",
+    "handleft",
+    "controllerleft"
+  ]);
+
+  const rightHandPosition = findPositionByName(pose, [
+    "righthand",
+    "right hand",
+    "rightcontroller",
+    "right controller",
+    "rhand",
+    "handright",
+    "controllerright"
+  ]);
+
+  return {
+    head: pointFromPosition(headPosition),
+    leftHand: pointFromPosition(leftHandPosition),
+    rightHand: pointFromPosition(rightHandPosition)
+  };
 }
 
 /* =========================
@@ -681,10 +763,6 @@ function setupMap() {
     gameMap.invalidateSize();
   }, 100);
 }
-
-/* =========================
-   GRID
-========================= */
 
 function drawGrid() {
   if (!gameMap || !gridLayer) {
@@ -787,8 +865,8 @@ function updatePlayerBody(username, body) {
     parts.head = createBodyMarker(
       body.head,
       "#ff3f3f",
-      8,
-      escapeHTML(username) + " Head"
+      9,
+      escapeHTML(username)
     );
   } else {
     parts.head.setLatLng([body.head.lat, body.head.lng]);
@@ -796,12 +874,7 @@ function updatePlayerBody(username, body) {
 
   if (body.leftHand) {
     if (!parts.leftHand) {
-      parts.leftHand = createBodyMarker(
-        body.leftHand,
-        "#45a3ff",
-        6,
-        escapeHTML(username) + " L"
-      );
+      parts.leftHand = createBodyMarker(body.leftHand, "#45a3ff", 6, "L");
     } else {
       parts.leftHand.setLatLng([body.leftHand.lat, body.leftHand.lng]);
     }
@@ -813,7 +886,7 @@ function updatePlayerBody(username, body) {
           [body.leftHand.lat, body.leftHand.lng]
         ],
         {
-          color: "rgba(69, 163, 255, 0.55)",
+          color: "rgba(69, 163, 255, 0.65)",
           weight: 2,
           interactive: false
         }
@@ -828,12 +901,7 @@ function updatePlayerBody(username, body) {
 
   if (body.rightHand) {
     if (!parts.rightHand) {
-      parts.rightHand = createBodyMarker(
-        body.rightHand,
-        "#ffe15a",
-        6,
-        escapeHTML(username) + " R"
-      );
+      parts.rightHand = createBodyMarker(body.rightHand, "#ffe15a", 6, "R");
     } else {
       parts.rightHand.setLatLng([body.rightHand.lat, body.rightHand.lng]);
     }
@@ -845,7 +913,7 @@ function updatePlayerBody(username, body) {
           [body.rightHand.lat, body.rightHand.lng]
         ],
         {
-          color: "rgba(255, 225, 90, 0.55)",
+          color: "rgba(255, 225, 90, 0.65)",
           weight: 2,
           interactive: false
         }
@@ -866,84 +934,108 @@ function updatePlayerBody(username, body) {
 function getLikelyHome(player) {
   const history = player.history;
 
-  if (!Array.isArray(history) || history.length < 8) {
+  if (!Array.isArray(history) || history.length < 2) {
     return null;
   }
 
-  const scores = {};
+  const landings = {};
 
-  function addScore(x, z, amount, type) {
-    const key = clusterKey(x, z, 75);
+  for (let i = 1; i < history.length; i++) {
+    const prev = history[i - 1];
+    const curr = history[i];
 
-    if (!scores[key]) {
-      const parts = parseKey(key);
+    const distance = Math.hypot(curr.x - prev.x, curr.z - prev.z);
 
-      scores[key] = {
-        x: parts[0],
-        z: parts[1],
-        score: 0,
-        visits: 0,
-        jumps: 0
-      };
-    }
-
-    scores[key].score += amount;
-
-    if (type === "visit") {
-      scores[key].visits += 1;
-    }
-
-    if (type === "jump") {
-      scores[key].jumps += 1;
-    }
-  }
-
-  for (let i = 0; i < history.length; i++) {
-    const point = history[i];
-
-    if (
-      typeof point.x !== "number" ||
-      typeof point.z !== "number"
-    ) {
+    if (distance < TELEPORT_DISTANCE) {
       continue;
     }
 
-    addScore(point.x, point.z, 1, "visit");
+    const key = coordKey(curr.x, curr.y, curr.z);
 
-    if (i > 0) {
-      const prev = history[i - 1];
-
-      if (
-        typeof prev.x === "number" &&
-        typeof prev.z === "number"
-      ) {
-        const distance = Math.hypot(point.x - prev.x, point.z - prev.z);
-
-        if (distance >= 450) {
-          addScore(point.x, point.z, 10, "jump");
-        }
-      }
+    if (!landings[key]) {
+      landings[key] = {
+        x: curr.x,
+        y: curr.y,
+        z: curr.z,
+        count: 0
+      };
     }
+
+    landings[key].count += 1;
   }
 
-  const best = Object.values(scores)
-    .sort((a, b) => b.score - a.score)[0];
+  const best = Object.values(landings)
+    .sort((a, b) => b.count - a.count)[0];
 
-  if (!best) {
+  if (!best || best.count < MIN_HOME_TELEPORTS) {
     return null;
   }
 
-  if (best.jumps < 1 && best.visits < 5) {
-    return null;
+  return best;
+}
+
+function getAllLikelyHomes() {
+  const homes = [];
+
+  Object.entries(knownPlayers).forEach(([name, player]) => {
+    const home = getLikelyHome(player);
+
+    if (home) {
+      homes.push({
+        name,
+        x: home.x,
+        y: home.y,
+        z: home.z,
+        count: home.count
+      });
+    }
+  });
+
+  return homes;
+}
+
+/* =========================
+   RANDOM HOME
+========================= */
+
+function showRandomHome(type) {
+  const homes = getAllLikelyHomes();
+
+  const filtered = homes.filter(home => {
+    if (type === "sky") {
+      return home.y > 230;
+    }
+
+    if (type === "underground") {
+      return home.y < 40;
+    }
+
+    return false;
+  });
+
+  if (!filtered.length) {
+    alert("No homes found for that type yet.");
+    return;
   }
 
-  return {
-    x: best.x,
-    z: best.z,
-    score: best.score,
-    visits: best.visits,
-    teleports: best.jumps
-  };
+  const chosen = filtered[Math.floor(Math.random() * filtered.length)];
+
+  gameMap.setView([-chosen.z, chosen.x], 5);
+
+  L.popup()
+    .setLatLng([-chosen.z, chosen.x])
+    .setContent(`
+      <h3>${type === "sky" ? "Sky Base" : "Underground"}</h3>
+      <b>Player:</b> ${escapeHTML(chosen.name)}<br>
+      <b>X:</b> ${chosen.x}<br>
+      <b>Y:</b> ${chosen.y}<br>
+      <b>Z:</b> ${chosen.z}<br>
+      <b>Teleports:</b> ${chosen.count}<br><br>
+      ${chosen.x} ${chosen.y} ${chosen.z}
+    `)
+    .openOn(gameMap);
+
+  copy(`${chosen.x} ${chosen.y} ${chosen.z}`);
 }
 
 /* =========================
@@ -955,14 +1047,12 @@ function buildHeatData() {
   const points = getAllHistoryPoints();
 
   points.forEach(point => {
-    const key = clusterKey(point.x, point.z, 90);
+    const key = `${Math.round(point.x / 90) * 90}:${Math.round(point.z / 90) * 90}`;
 
     if (!buckets[key]) {
-      const parts = parseKey(key);
-
       buckets[key] = {
-        x: parts[0],
-        z: parts[1],
+        x: Math.round(point.x / 90) * 90,
+        z: Math.round(point.z / 90) * 90,
         count: 0,
         yTotal: 0
       };
@@ -1083,6 +1173,19 @@ function setupButtons() {
     }
   };
 
+  document.getElementById("randomHomeBtn").onclick = () => {
+    const panel = document.getElementById("randomPanel");
+    panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+  };
+
+  document.getElementById("skyBaseBtn").onclick = () => {
+    showRandomHome("sky");
+  };
+
+  document.getElementById("undergroundBtn").onclick = () => {
+    showRandomHome("underground");
+  };
+
   document.getElementById("resetBtn").onclick = () => {
     gameMap.setView([0, 0], 0);
   };
@@ -1108,10 +1211,11 @@ async function loadPlayers() {
 
     Object.keys(knownPlayers).forEach(name => {
       knownPlayers[name].online = false;
+      knownPlayers[name].onlineSince = null;
     });
 
     data.players.forEach(playerData => {
-      const username = playerData.Username;
+      const username = playerData.Username || playerData.username || playerData.Name;
 
       if (!username) {
         return;
@@ -1137,11 +1241,14 @@ async function loadPlayers() {
 
       if (!knownPlayers[username]) {
         knownPlayers[username] = {
-          history: []
+          history: [],
+          totalOnlineTime: 0
         };
       }
 
       const player = knownPlayers[username];
+
+      updateOnlineTime(player);
 
       player.x = x;
       player.y = y;
@@ -1194,8 +1301,11 @@ function renderPlayers() {
 
   const players = Object.entries(knownPlayers)
     .sort((a, b) => {
-      if (b[1].online !== a[1].online) {
-        return b[1].online - a[1].online;
+      const aTime = a[1].totalOnlineTime || 0;
+      const bTime = b[1].totalOnlineTime || 0;
+
+      if (bTime !== aTime) {
+        return bTime - aTime;
       }
 
       return (b[1].lastSeen || 0) - (a[1].lastSeen || 0);
@@ -1230,6 +1340,7 @@ function renderPlayers() {
       </div>
 
       <div class="coords">
+        Time online: ${formatTime(player.totalOnlineTime || 0)}<br>
         Head X: ${player.x ?? "?"}<br>
         Head Y: ${player.y ?? "?"}<br>
         Head Z: ${player.z ?? "?"}<br>
@@ -1245,7 +1356,7 @@ function renderPlayers() {
       <div class="home">
         ${
           home
-            ? `Likely Home X:${home.x} Z:${home.z}<br>Visits:${home.visits} | Jumps:${home.teleports}`
+            ? `Likely Home X:${home.x} Y:${home.y} Z:${home.z}<br>Teleports:${home.count}`
             : "Likely home unknown"
         }
       </div>
@@ -1266,7 +1377,7 @@ function renderPlayers() {
         return;
       }
 
-      copy(`${home.x} ${home.z}`);
+      copy(`${home.x} ${home.y} ${home.z}`);
     };
 
     div.querySelector(".view").onclick = () => {
