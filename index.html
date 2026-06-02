@@ -11,16 +11,15 @@
 <style>
 :root {
   --bg: #050505;
-  --panel: rgba(12, 12, 14, 0.94);
-  --panel-strong: #111114;
-  --panel-soft: #19191d;
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #f4f4f5;
-  --muted: #9b9ba1;
-  --danger: #ff4d4d;
-  --green: #5cff84;
-  --accent: #ff3b3b;
-  --yellow: #ffd43b;
+  --panel: rgba(12, 12, 14, 0.95);
+  --panel2: #121216;
+  --panel3: #1a1a20;
+  --line: rgba(255, 255, 255, 0.09);
+  --text: #f5f5f6;
+  --muted: #a0a0a8;
+  --red: #ff3f3f;
+  --green: #58ff86;
+  --yellow: #ffe15a;
 }
 
 html,
@@ -42,62 +41,59 @@ body,
 #lockScreen {
   position: fixed;
   inset: 0;
-  z-index: 20000;
+  z-index: 30000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, #191919 0%, #050505 58%);
+  background: #050505;
   color: white;
 }
 
 #lockBox {
-  width: min(360px, calc(100vw - 32px));
-  background: rgba(12, 12, 14, 0.96);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  width: min(360px, calc(100vw - 30px));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   padding: 22px;
   box-sizing: border-box;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
 #lockTitle {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
-  margin-bottom: 4px;
 }
 
 #lockSub {
   color: var(--muted);
-  margin-bottom: 18px;
+  margin: 6px 0 18px;
 }
 
 #passwordInput {
   width: 100%;
   box-sizing: border-box;
-  padding: 13px 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  outline: none;
-  background: #0b0b0d;
+  padding: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #0b0b0e;
   color: white;
   font-size: 16px;
+  outline: none;
 }
 
 #passwordInput:focus {
-  border-color: rgba(255, 77, 77, 0.7);
+  border-color: rgba(255, 63, 63, 0.8);
 }
 
 #unlockBtn {
   width: 100%;
   margin-top: 12px;
-  padding: 12px;
-  font-weight: 700;
 }
 
 #lockError {
   display: none;
-  color: var(--danger);
   margin-top: 12px;
+  color: var(--red);
   font-size: 14px;
 }
 
@@ -111,43 +107,42 @@ body,
   position: absolute;
   left: 14px;
   top: 14px;
-  width: 360px;
+  width: 370px;
   height: calc(100vh - 28px);
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
   z-index: 9999;
   color: white;
   overflow: hidden;
-  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.42);
 }
 
 #header {
-  padding: 18px 18px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 17px;
+  border-bottom: 1px solid var(--line);
 }
 
 #titleRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 #title {
   font-size: 24px;
   font-weight: 800;
-  letter-spacing: 0;
 }
 
 #livePill {
-  background: rgba(92, 255, 132, 0.12);
   color: var(--green);
-  border: 1px solid rgba(92, 255, 132, 0.22);
+  background: rgba(88, 255, 134, 0.1);
+  border: 1px solid rgba(88, 255, 134, 0.25);
   border-radius: 999px;
   padding: 5px 9px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 #subtitle {
@@ -158,61 +153,56 @@ body,
 
 #stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 .stat {
-  background: var(--panel-strong);
-  border: 1px solid var(--border);
+  background: var(--panel2);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 10px;
+  padding: 9px;
 }
 
 .statLabel {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .statValue {
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 800;
   margin-top: 3px;
+  font-weight: 800;
+  font-size: 17px;
 }
 
 #searchWrap {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 #search {
   width: 100%;
-  padding: 12px 13px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #0b0b0d;
-  color: white;
   box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0b0b0e;
+  color: white;
   outline: none;
-}
-
-#search:focus {
-  border-color: rgba(255, 77, 77, 0.65);
 }
 
 #players {
   padding: 12px;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 263px);
   overflow-y: auto;
   box-sizing: border-box;
 }
 
 .player {
-  background: var(--panel-strong);
-  border: 1px solid var(--border);
+  background: var(--panel2);
+  border: 1px solid var(--line);
   padding: 13px;
   border-radius: 8px;
   margin-bottom: 10px;
@@ -242,27 +232,25 @@ body,
 }
 
 .offlineStatus {
-  color: #8b8b91;
+  color: #85858d;
 }
 
-.coords {
+.coords,
+.home {
   margin-top: 9px;
-  color: #b8b8be;
+  color: #b9b9c0;
   line-height: 1.45;
   font-size: 14px;
 }
 
 .home {
-  margin-top: 9px;
-  color: #ff8f8f;
-  line-height: 1.45;
-  font-size: 14px;
+  color: #ff9a9a;
 }
 
 .buttons {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 7px;
   margin-top: 11px;
 }
 
@@ -272,16 +260,16 @@ button {
   padding: 9px 10px;
   cursor: pointer;
   color: white;
-  background: var(--accent);
-  font-weight: 700;
+  background: var(--red);
+  font-weight: 800;
 }
 
 button:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.12);
 }
 
 .secondary {
-  background: #25252b;
+  background: #25252c;
 }
 
 #topbar {
@@ -298,36 +286,36 @@ button:hover {
   right: 14px;
   bottom: 14px;
   background: var(--panel);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   color: white;
   padding: 11px 12px;
-  border-radius: 10px;
+  border-radius: 8px;
   z-index: 9999;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .leaflet-tooltip {
-  background: rgba(10, 10, 12, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 10, 12, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: white;
   box-shadow: none;
 }
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #111114;
+  background: #111116;
   color: white;
 }
 
 @media (max-width: 760px) {
   #sidebar {
     width: calc(100vw - 28px);
-    height: 46vh;
+    height: 48vh;
   }
 
   #players {
-    height: calc(46vh - 250px);
-    min-height: 120px;
+    height: calc(48vh - 263px);
+    min-height: 115px;
   }
 
   #topbar {
@@ -351,12 +339,13 @@ button:hover {
 </head>
 
 <body>
+
 <div id="lockScreen">
   <div id="lockBox">
     <div id="lockTitle">FactionsVR</div>
-    <div id="lockSub">Enter password to open tracker</div>
+    <div id="lockSub">Enter password</div>
 
-    <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password">
+    <input id="passwordInput" type="password" placeholder="Password">
     <button id="unlockBtn">Unlock</button>
 
     <div id="lockError">Wrong password</div>
@@ -372,7 +361,7 @@ button:hover {
         <div id="title">FactionsVR</div>
         <div id="livePill">LIVE</div>
       </div>
-      <div id="subtitle">Player tracker and heat map</div>
+      <div id="subtitle">Player tracker and saved heat map</div>
     </div>
 
     <div id="stats">
@@ -382,7 +371,12 @@ button:hover {
       </div>
 
       <div class="stat">
-        <div class="statLabel">Heat Points</div>
+        <div class="statLabel">Players</div>
+        <div class="statValue" id="playerCount">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="statLabel">Heat</div>
         <div class="statValue" id="heatCount">0</div>
       </div>
     </div>
@@ -395,13 +389,11 @@ button:hover {
   </div>
 
   <div id="topbar">
-    <button id="heatBtn">Heat Map</button>
+    <button id="heatBtn">Show Heat</button>
     <button id="resetBtn" class="secondary">Reset View</button>
   </div>
 
-  <div id="coordsBox">
-    X: 0 | Z: 0
-  </div>
+  <div id="coordsBox">X: 0 | Z: 0</div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -414,13 +406,13 @@ button:hover {
 
 const PASSWORD = "6768";
 
+let appStarted = false;
+
 const lockScreen = document.getElementById("lockScreen");
 const app = document.getElementById("app");
 const passwordInput = document.getElementById("passwordInput");
 const unlockBtn = document.getElementById("unlockBtn");
 const lockError = document.getElementById("lockError");
-
-let appStarted = false;
 
 function unlock() {
   if (passwordInput.value !== PASSWORD) {
@@ -429,10 +421,8 @@ function unlock() {
     return;
   }
 
-  sessionStorage.setItem("factionsTrackerUnlocked", "true");
   lockScreen.style.display = "none";
   app.style.display = "block";
-
   startApp();
 }
 
@@ -444,25 +434,18 @@ passwordInput.addEventListener("keydown", event => {
   }
 });
 
-if (sessionStorage.getItem("factionsTrackerUnlocked") === "true") {
-  lockScreen.style.display = "none";
-  app.style.display = "block";
-  startApp();
-}
+setTimeout(() => {
+  passwordInput.focus();
+}, 100);
 
 /* =========================
    STORAGE
 ========================= */
 
 const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
-const locationData = JSON.parse(localStorage.getItem("locationData") || "{}");
 
 function savePlayers() {
   localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
-}
-
-function saveHeatData() {
-  localStorage.setItem("locationData", JSON.stringify(locationData));
 }
 
 /* =========================
@@ -477,7 +460,6 @@ let gridLayer;
 let heatLayer;
 let heatEnabled = false;
 let firstPlayer = true;
-let pollTimer = null;
 
 /* =========================
    HELPERS
@@ -496,25 +478,64 @@ function copy(text) {
   navigator.clipboard.writeText(text);
 }
 
+function clusterKey(x, z, size) {
+  return `${Math.round(x / size) * size}:${Math.round(z / size) * size}`;
+}
+
+function parseKey(key) {
+  return key.split(":").map(Number);
+}
+
 function updateCoordsBox(latlng) {
   document.getElementById("coordsBox").innerText =
     `X: ${Math.floor(latlng.lng)} | Z: ${Math.floor(-latlng.lat)}`;
 }
 
+function updateStats() {
+  const players = Object.values(knownPlayers);
+  const online = players.filter(player => player.online).length;
+  const heatPoints = getAllHistoryPoints().length;
+
+  document.getElementById("onlineCount").innerText = online;
+  document.getElementById("playerCount").innerText = players.length;
+  document.getElementById("heatCount").innerText = heatPoints;
+}
+
+function getAllHistoryPoints() {
+  const points = [];
+
+  Object.values(knownPlayers).forEach(player => {
+    if (!Array.isArray(player.history)) {
+      return;
+    }
+
+    player.history.forEach(point => {
+      if (
+        typeof point.x === "number" &&
+        typeof point.y === "number" &&
+        typeof point.z === "number"
+      ) {
+        points.push(point);
+      }
+    });
+  });
+
+  return points;
+}
+
 function addPlayerHistory(player, x, y, z) {
-  if (!player.history) {
+  if (!Array.isArray(player.history)) {
     player.history = [];
   }
 
   const last = player.history[player.history.length - 1];
 
-  if (
-    last &&
-    last.x === x &&
-    last.y === y &&
-    last.z === z
-  ) {
-    return;
+  if (last) {
+    const moved = Math.hypot(x - last.x, z - last.z);
+
+    if (moved < 8 && Math.abs(y - last.y) < 3) {
+      return;
+    }
   }
 
   player.history.push({
@@ -524,21 +545,9 @@ function addPlayerHistory(player, x, y, z) {
     time: Date.now()
   });
 
-  if (player.history.length > 700) {
-    player.history.shift();
+  if (player.history.length > 1500) {
+    player.history.splice(0, player.history.length - 1500);
   }
-}
-
-function updateStats() {
-  const onlineCount = Object.values(knownPlayers)
-    .filter(player => player.online)
-    .length;
-
-  const heatCount = Object.values(locationData)
-    .reduce((total, spot) => total + (spot.count || 0), 0);
-
-  document.getElementById("onlineCount").innerText = onlineCount;
-  document.getElementById("heatCount").innerText = heatCount;
 }
 
 /* =========================
@@ -558,16 +567,17 @@ function setupMap() {
   gridLayer = L.layerGroup().addTo(map);
 
   heatLayer = L.heatLayer([], {
-    radius: 26,
-    blur: 22,
-    maxZoom: 8,
-    minOpacity: 0.25,
+    radius: 34,
+    blur: 26,
+    maxZoom: 7,
+    minOpacity: 0.18,
     gradient: {
-      0.15: "#2b59ff",
-      0.35: "#2dff9a",
-      0.55: "#fff34d",
-      0.75: "#ff8a2b",
-      1.0: "#ff2424"
+      0.10: "#284bff",
+      0.28: "#23d7ff",
+      0.45: "#31ff82",
+      0.62: "#fff34a",
+      0.80: "#ff8a2a",
+      1.00: "#ff1f1f"
     }
   });
 
@@ -638,57 +648,89 @@ function drawGrid() {
 }
 
 /* =========================
-   HOME DETECTION
+   LIKELY HOME
 ========================= */
 
-function getLikelyHome(history) {
-  if (!history || history.length < 5) {
+function getLikelyHome(player) {
+  const history = player.history;
+
+  if (!Array.isArray(history) || history.length < 8) {
     return null;
   }
 
-  const teleports = {};
+  const scores = {};
 
-  for (let i = 1; i < history.length; i++) {
-    const prev = history[i - 1];
-    const curr = history[i];
+  function addScore(x, z, amount, type) {
+    const key = clusterKey(x, z, 75);
 
-    const distance = Math.hypot(
-      curr.x - prev.x,
-      curr.z - prev.z
-    );
+    if (!scores[key]) {
+      const parts = parseKey(key);
 
-    if (distance < 500) {
+      scores[key] = {
+        x: parts[0],
+        z: parts[1],
+        score: 0,
+        visits: 0,
+        jumps: 0
+      };
+    }
+
+    scores[key].score += amount;
+
+    if (type === "visit") {
+      scores[key].visits += 1;
+    }
+
+    if (type === "jump") {
+      scores[key].jumps += 1;
+    }
+  }
+
+  for (let i = 0; i < history.length; i++) {
+    const point = history[i];
+
+    if (
+      typeof point.x !== "number" ||
+      typeof point.z !== "number"
+    ) {
       continue;
     }
 
-    const x = Math.round(curr.x / 50) * 50;
-    const z = Math.round(curr.z / 50) * 50;
+    addScore(point.x, point.z, 1, "visit");
 
-    const key = `${x}:${z}`;
+    if (i > 0) {
+      const prev = history[i - 1];
 
-    teleports[key] = (teleports[key] || 0) + 1;
-  }
+      if (
+        typeof prev.x === "number" &&
+        typeof prev.z === "number"
+      ) {
+        const distance = Math.hypot(point.x - prev.x, point.z - prev.z);
 
-  let bestKey = null;
-  let bestCount = 0;
-
-  for (const key in teleports) {
-    if (teleports[key] > bestCount) {
-      bestCount = teleports[key];
-      bestKey = key;
+        if (distance >= 450) {
+          addScore(point.x, point.z, 10, "jump");
+        }
+      }
     }
   }
 
-  if (!bestKey) {
+  const best = Object.values(scores)
+    .sort((a, b) => b.score - a.score)[0];
+
+  if (!best) {
     return null;
   }
 
-  const parts = bestKey.split(":").map(Number);
+  if (best.jumps < 1 && best.visits < 5) {
+    return null;
+  }
 
   return {
-    x: parts[0],
-    z: parts[1],
-    teleports: bestCount
+    x: best.x,
+    z: best.z,
+    score: best.score,
+    visits: best.visits,
+    teleports: best.jumps
   };
 }
 
@@ -696,73 +738,60 @@ function getLikelyHome(history) {
    HEAT MAP
 ========================= */
 
-function recordHeatPoint(username, x, y, z) {
-  const gridX = Math.round(x / 125) * 125;
-  const gridZ = Math.round(z / 125) * 125;
-  const key = `${gridX}:${gridZ}`;
+function buildHeatData() {
+  const buckets = {};
+  const points = getAllHistoryPoints();
 
-  if (!locationData[key]) {
-    locationData[key] = {
-      x: gridX,
-      z: gridZ,
-      count: 0,
-      players: {}
-    };
-  }
+  points.forEach(point => {
+    const key = clusterKey(point.x, point.z, 90);
 
-  const spot = locationData[key];
+    if (!buckets[key]) {
+      const parts = parseKey(key);
 
-  spot.count += 1;
-  spot.lastSeen = Date.now();
+      buckets[key] = {
+        x: parts[0],
+        z: parts[1],
+        count: 0,
+        yTotal: 0
+      };
+    }
 
-  if (!spot.players[username]) {
-    spot.players[username] = {
-      visits: 0,
-      firstSeen: Date.now(),
-      lastSeen: Date.now(),
-      yValues: []
-    };
-  }
-
-  const playerSpot = spot.players[username];
-
-  playerSpot.visits += 1;
-  playerSpot.lastSeen = Date.now();
-  playerSpot.yValues.push(y);
-
-  if (playerSpot.yValues.length > 100) {
-    playerSpot.yValues.shift();
-  }
-}
-
-function getHeatPoints() {
-  const spots = Object.values(locationData);
-
-  if (!spots.length) {
-    return [];
-  }
-
-  const maxCount = Math.max(...spots.map(spot => spot.count || 1));
-
-  return spots.map(spot => {
-    const strength = Math.max(
-      0.15,
-      Math.min(1, Math.log((spot.count || 1) + 1) / Math.log(maxCount + 1))
-    );
-
-    return [
-      -spot.z,
-      spot.x,
-      strength
-    ];
+    buckets[key].count += 1;
+    buckets[key].yTotal += point.y;
   });
+
+  return Object.values(buckets);
 }
 
 function refreshHeatMap() {
-  heatLayer.setLatLngs(getHeatPoints());
+  const buckets = buildHeatData();
+
+  if (!buckets.length) {
+    heatLayer.setLatLngs([]);
+    clearHotspots();
+    updateStats();
+    return;
+  }
+
+  const maxCount = Math.max(...buckets.map(bucket => bucket.count));
+
+  const heatPoints = buckets.map(bucket => {
+    const strength = Math.max(
+      0.12,
+      Math.min(1, Math.sqrt(bucket.count / maxCount))
+    );
+
+    return [
+      -bucket.z,
+      bucket.x,
+      strength
+    ];
+  });
+
+  heatLayer.setLatLngs(heatPoints);
 
   if (heatEnabled) {
-    buildHeatInspector();
+    buildHeatInspector(buckets);
   }
 
   updateStats();
@@ -776,58 +805,47 @@ function clearHotspots() {
   hotspotMarkers.length = 0;
 }
 
-function buildHeatInspector() {
+function buildHeatInspector(existingBuckets) {
   clearHotspots();
 
-  Object.values(locationData).forEach(spot => {
-    if ((spot.count || 0) < 3) {
-      return;
-    }
+  const buckets = existingBuckets || buildHeatData();
 
-    const radius = Math.min(900, 160 + (spot.count * 10));
+  buckets
+    .filter(bucket => bucket.count >= 2)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 80)
+    .forEach(bucket => {
+      const avgY = Math.round(bucket.yTotal / bucket.count);
+      const radius = Math.min(1200, 150 + bucket.count * 18);
 
-    const marker = L.circle(
-      [-spot.z, spot.x],
-      {
-        radius,
-        color: "rgba(255, 255, 255, 0.25)",
-        weight: 1,
-        fillColor: "#ffffff",
-        fillOpacity: 0.02
-      }
-    ).addTo(map);
+      const marker = L.circle(
+        [-bucket.z, bucket.x],
+        {
+          radius,
+          color: "rgba(255,255,255,0.32)",
+          weight: 1,
+          fillColor: "#ffffff",
+          fillOpacity: 0.035
+        }
+      ).addTo(map);
 
-    marker.on("click", () => {
-      let html = `
-        <h3>Heat Spot</h3>
-        <b>X:</b> ${spot.x}<br>
-        <b>Z:</b> ${spot.z}<br>
-        <b>Total sightings:</b> ${spot.count}<br><br>
-      `;
+      marker.on("click", () => {
+        const html = `
+          <h3>Heat Spot</h3>
+          <b>X:</b> ${bucket.x}<br>
+          <b>Z:</b> ${bucket.z}<br>
+          <b>Avg Y:</b> ${avgY}<br>
+          <b>Sightings:</b> ${bucket.count}
+        `;
 
-      Object.entries(spot.players)
-        .sort((a, b) => b[1].visits - a[1].visits)
-        .slice(0, 12)
-        .forEach(([name, info]) => {
-          const avgY = Math.round(
-            info.yValues.reduce((a, b) => a + b, 0) / info.yValues.length
-          );
+        L.popup()
+          .setLatLng([-bucket.z, bucket.x])
+          .setContent(html)
+          .openOn(map);
+      });
 
-          html += `
-            <b>${escapeHTML(name)}</b><br>
-            Visits: ${info.visits}<br>
-            Avg Y: ${avgY}<br><br>
-          `;
-        });
-
-      L.popup()
-        .setLatLng([-spot.z, spot.x])
-        .setContent(html)
-        .openOn(map);
+      hotspotMarkers.push(marker);
     });
-
-    hotspotMarkers.push(marker);
-  });
 }
 
 /* =========================
@@ -845,7 +863,7 @@ function setupButtons() {
     } else {
       map.removeLayer(heatLayer);
       clearHotspots();
-      document.getElementById("heatBtn").innerText = "Heat Map";
+      document.getElementById("heatBtn").innerText = "Show Heat";
     }
   };
 
@@ -869,8 +887,7 @@ async function loadPlayers() {
     const data = await response.json();
 
     if (!data.players) {
-      console.error("No players array found");
-      return;
+      throw new Error("No players array found");
     }
 
     Object.keys(knownPlayers).forEach(name => {
@@ -918,14 +935,13 @@ async function loadPlayers() {
       player.lastSeen = Date.now();
 
       addPlayerHistory(player, x, y, z);
-      recordHeatPoint(username, x, y, z);
 
       if (!markers[username]) {
         markers[username] =
           L.circleMarker([lat, lng], {
             radius: 8,
-            color: "#ff3b3b",
-            fillColor: "#ff3b3b",
+            color: "#ff3f3f",
+            fillColor: "#ff3f3f",
             fillOpacity: 1,
             weight: 2
           }).addTo(map);
@@ -943,7 +959,6 @@ async function loadPlayers() {
     });
 
     savePlayers();
-    saveHeatData();
     refreshHeatMap();
     renderPlayers();
   } catch (err) {
@@ -984,7 +999,7 @@ function renderPlayers() {
       return;
     }
 
-    const home = getLikelyHome(player.history);
+    const home = getLikelyHome(player);
 
     const div = document.createElement("div");
 
@@ -992,9 +1007,7 @@ function renderPlayers() {
 
     div.innerHTML = `
       <div class="playerTop">
-        <div class="playerName">
-          ${escapeHTML(name)}
-        </div>
+        <div class="playerName">${escapeHTML(name)}</div>
 
         <div class="${
           player.online
@@ -1012,14 +1025,19 @@ function renderPlayers() {
       <div class="coords">
         X: ${player.x ?? "?"}<br>
         Y: ${player.y ?? "?"}<br>
-        Z: ${player.z ?? "?"}
+        Z: ${player.z ?? "?"}<br>
+        Saved points: ${
+          Array.isArray(player.history)
+            ? player.history.length
+            : 0
+        }
       </div>
 
       <div class="home">
         ${
           home
-            ? `Home X:${home.x} Z:${home.z}<br>Teleports:${home.teleports}`
-            : "Home unknown"
+            ? `Likely Home X:${home.x} Z:${home.z}<br>Visits:${home.visits} | Jumps:${home.teleports}`
+            : "Likely home unknown"
         }
       </div>
 
@@ -1035,7 +1053,9 @@ function renderPlayers() {
     };
 
     div.querySelector(".homeBtn").onclick = () => {
-      if (!home) return;
+      if (!home) {
+        return;
+      }
 
       copy(`${home.x} ${home.z}`);
     };
@@ -1083,15 +1103,13 @@ function startApp() {
   setupButtons();
   setupSearch();
 
-  refreshHeatMap();
   renderPlayers();
+  refreshHeatMap();
   loadPlayers();
 
-  pollTimer = setInterval(
-    loadPlayers,
-    3000
-  );
+  setInterval(loadPlayers, 3000);
 }
 </script>
+
 </body>
 </html>
