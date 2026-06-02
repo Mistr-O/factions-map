@@ -13,13 +13,11 @@
   --bg: #050505;
   --panel: rgba(12, 12, 14, 0.95);
   --panel2: #121216;
-  --panel3: #1a1a20;
   --line: rgba(255, 255, 255, 0.09);
   --text: #f5f5f6;
   --muted: #a0a0a8;
   --red: #ff3f3f;
   --green: #58ff86;
-  --yellow: #ffe15a;
 }
 
 html,
@@ -79,10 +77,6 @@ body,
   color: white;
   font-size: 16px;
   outline: none;
-}
-
-#passwordInput:focus {
-  border-color: rgba(255, 63, 63, 0.8);
 }
 
 #unlockBtn {
@@ -264,10 +258,6 @@ button {
   font-weight: 800;
 }
 
-button:hover {
-  filter: brightness(1.12);
-}
-
 .secondary {
   background: #25252c;
 }
@@ -401,12 +391,26 @@ button:hover {
 
 <script>
 /* =========================
-   PASSWORD
+   GLOBALS
 ========================= */
 
 const PASSWORD = "6768";
 
+const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
+
+const markers = {};
+const hotspotMarkers = [];
+
+let gameMap = null;
+let gridLayer = null;
+let heatLayer = null;
+let heatEnabled = false;
+let firstPlayer = true;
 let appStarted = false;
+
+/* =========================
+   PASSWORD
+========================= */
 
 const lockScreen = document.getElementById("lockScreen");
 const app = document.getElementById("app");
@@ -442,24 +446,9 @@ setTimeout(() => {
    STORAGE
 ========================= */
 
-const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
-
 function savePlayers() {
   localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
 }
-
-/* =========================
-   DATA
-========================= */
-
-const markers = {};
-const hotspotMarkers = [];
-
-let map;
-let gridLayer;
-let heatLayer;
-let heatEnabled = false;
-let firstPlayer = true;
 
 /* =========================
    HELPERS
@@ -491,16 +480,6 @@ function updateCoordsBox(latlng) {
     `X: ${Math.floor(latlng.lng)} | Z: ${Math.floor(-latlng.lat)}`;
 }
 
-function updateStats() {
-  const players = Object.values(knownPlayers);
-  const online = players.filter(player => player.online).length;
-  const heatPoints = getAllHistoryPoints().length;
-
-  document.getElementById("onlineCount").innerText = online;
-  document.getElementById("playerCount").innerText = players.length;
-  document.getElementById("heatCount").innerText = heatPoints;
-}
-
 function getAllHistoryPoints() {
   const points = [];
 
@@ -521,6 +500,16 @@ function getAllHistoryPoints() {
   });
 
   return points;
+}
+
+function updateStats() {
+  const players = Object.values(knownPlayers);
+  const online = players.filter(player => player.online).length;
+  const heatPoints = getAllHistoryPoints().length;
+
+  document.getElementById("onlineCount").innerText = online;
+  document.getElementById("playerCount").innerText = players.length;
+  document.getElementById("heatCount").innerText = heatPoints;
 }
 
 function addPlayerHistory(player, x, y, z) {
@@ -555,7 +544,7 @@ function addPlayerHistory(player, x, y, z) {
 ========================= */
 
 function setupMap() {
-  map = L.map("map", {
+  gameMap = L.map("map", {
     crs: L.CRS.Simple,
     minZoom: -10,
     maxZoom: 16,
@@ -564,7 +553,7 @@ function setupMap() {
     attributionControl: false
   }).setView([0, 0], 0);
 
-  gridLayer = L.layerGroup().addTo(map);
+  gridLayer = L.layerGroup().addTo(gameMap);
 
   heatLayer = L.heatLayer([], {
     radius: 34,
@@ -581,16 +570,16 @@ function setupMap() {
     }
   });
 
-  map.on("zoom move", drawGrid);
+  gameMap.on("zoom move", drawGrid);
 
-  map.on("mousemove", event => {
+  gameMap.on("mousemove", event => {
     updateCoordsBox(event.latlng);
   });
 
   drawGrid();
 
   setTimeout(() => {
-    map.invalidateSize();
+    gameMap.invalidateSize();
   }, 100);
 }
 
@@ -599,9 +588,13 @@ function setupMap() {
 ========================= */
 
 function drawGrid() {
+  if (!gameMap || !gridLayer) {
+    return;
+  }
+
   gridLayer.clearLayers();
 
-  const zoom = map.getZoom();
+  const zoom = gameMap.getZoom();
 
   let size = 100;
 
@@ -610,7 +603,7 @@ function drawGrid() {
   if (zoom <= -6) size = 2500;
   if (zoom <= -8) size = 5000;
 
-  const bounds = map.getBounds();
+  const bounds = gameMap.getBounds();
 
   const minX = Math.floor(bounds.getWest() / size) * size;
   const maxX = Math.ceil(bounds.getEast() / size) * size;
@@ -764,6 +757,10 @@ function buildHeatData() {
 }
 
 function refreshHeatMap() {
+  if (!heatLayer) {
+    return;
+  }
+
   const buckets = buildHeatData();
 
   if (!buckets.length) {
@@ -799,7 +796,7 @@ function refreshHeatMap() {
 
 function clearHotspots() {
   hotspotMarkers.forEach(marker => {
-    map.removeLayer(marker);
+    gameMap.removeLayer(marker);
   });
 
   hotspotMarkers.length = 0;
@@ -827,7 +824,7 @@ function buildHeatInspector(existingBuckets) {
           fillColor: "#ffffff",
           fillOpacity: 0.035
         }
-      ).addTo(map);
+      ).addTo(gameMap);
 
       marker.on("click", () => {
         const html = `
@@ -841,7 +838,7 @@ function buildHeatInspector(existingBuckets) {
         L.popup()
           .setLatLng([-bucket.z, bucket.x])
           .setContent(html)
-          .openOn(map);
+          .openOn(gameMap);
       });
 
       hotspotMarkers.push(marker);
@@ -857,18 +854,18 @@ function setupButtons() {
     heatEnabled = !heatEnabled;
 
     if (heatEnabled) {
-      heatLayer.addTo(map);
+      heatLayer.addTo(gameMap);
       buildHeatInspector();
       document.getElementById("heatBtn").innerText = "Hide Heat";
     } else {
-      map.removeLayer(heatLayer);
+      gameMap.removeLayer(heatLayer);
       clearHotspots();
       document.getElementById("heatBtn").innerText = "Show Heat";
     }
   };
 
   document.getElementById("resetBtn").onclick = () => {
-    map.setView([0, 0], 0);
+    gameMap.setView([0, 0], 0);
   };
 }
 
@@ -914,7 +911,7 @@ async function loadPlayers() {
       const lng = x;
 
       if (firstPlayer) {
-        map.setView([lat, lng], 2);
+        gameMap.setView([lat, lng], 2);
         firstPlayer = false;
       }
 
@@ -944,7 +941,7 @@ async function loadPlayers() {
             fillColor: "#ff3f3f",
             fillOpacity: 1,
             weight: 2
-          }).addTo(map);
+          }).addTo(gameMap);
 
         markers[username].bindTooltip(
           escapeHTML(username),
@@ -1068,7 +1065,7 @@ function renderPlayers() {
         return;
       }
 
-      map.setView([player.lat, player.lng], 4);
+      gameMap.setView([player.lat, player.lng], 4);
     };
 
     container.appendChild(div);
