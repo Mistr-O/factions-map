@@ -1,177 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>FactionsVR Tracker</title>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-
 html,
 body,
-#map{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#000;
-  font-family:Arial,Helvetica,sans-serif;
+#map {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.leaflet-container{
-  background:#000 !important;
+.leaflet-container {
+  background: #000 !important;
 }
 
-#sidebar{
-  position:absolute;
-  left:14px;
-  top:14px;
-  width:360px;
-  height:calc(100vh - 28px);
-  background:rgba(8,8,8,.92);
-  border-radius:18px;
-  z-index:9999;
-  color:white;
-  overflow:hidden;
-}
-  #players{
-  height:calc(100vh - 180px);
-  overflow-y:auto;
+#sidebar {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 360px;
+  height: calc(100vh - 28px);
+  background: rgba(8, 8, 8, .92);
+  border-radius: 18px;
+  z-index: 9999;
+  color: white;
+  overflow: hidden;
 }
 
-.player{
-  background:#111;
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:10px;
+#header {
+  padding: 20px;
 }
 
-.playerTop{
-  display:flex;
-  justify-content:space-between;
+#title {
+  font-size: 26px;
+  font-weight: 700;
 }
 
-.coords{
-  margin-top:8px;
-  color:#aaa;
+#subtitle {
+  color: #888;
 }
 
-.home{
-  margin-top:8px;
-  color:#ff7676;
+#searchWrap {
+  padding: 14px;
 }
 
-.buttons{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
+#search {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #111;
+  color: white;
+  box-sizing: border-box;
 }
 
-#header{
-  padding:20px;
+#players {
+  padding: 14px;
+  height: calc(100vh - 180px);
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-#title{
-  font-size:26px;
-  font-weight:700;
+.player {
+  background: #111;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
 
-#subtitle{
-  color:#888;
+.playerTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-#searchWrap{
-  padding:14px;
+.playerName {
+  color: white;
+  font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
-#search{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:white;
+.onlineStatus {
+  color: #5cff84;
 }
 
-#players{
-  padding:14px;
-  overflow-y:auto;
-  height:80%;
+.offlineStatus {
+  color: #999;
 }
 
-.player{
-  background:#111;
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:10px;
+.coords {
+  margin-top: 8px;
+  color: #aaa;
 }
 
-.playerName{
-  color:white;
-  font-weight:bold;
+.home {
+  margin-top: 8px;
+  color: #ff7676;
 }
 
-.onlineStatus{
-  color:#5cff84;
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.offlineStatus{
-  color:#999;
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: white;
+  background: #d63031;
 }
 
-button{
-  border:none;
-  border-radius:10px;
-  padding:8px 12px;
-  cursor:pointer;
-  color:white;
-  background:#d63031;
+.secondary {
+  background: #222;
 }
 
-.secondary{
-  background:#222;
+#topbar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 9999;
 }
 
-#topbar{
-  position:absolute;
-  top:14px;
-  right:14px;
-  z-index:9999;
+#coordsBox {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  background: #111;
+  color: white;
+  padding: 12px;
+  border-radius: 12px;
+  z-index: 9999;
 }
-
-#coordsBox{
-  position:absolute;
-  right:14px;
-  bottom:14px;
-  background:#111;
-  color:white;
-  padding:12px;
-  border-radius:12px;
-  z-index:9999;
-}
-
 </style>
-
 </head>
+
 <body>
-
-
 <div id="map"></div>
 
 <div id="sidebar">
-
   <div id="header">
     <div id="title">FactionsVR</div>
-    <div id="subtitle">
-      Live Player Tracker
-    </div>
+    <div id="subtitle">Live Player Tracker</div>
   </div>
 
   <div id="searchWrap">
@@ -179,19 +162,11 @@ button{
   </div>
 
   <div id="players"></div>
-
 </div>
 
 <div id="topbar">
-
-  <button id="heatBtn">
-    Heat Map
-  </button>
-
-  <button id="resetBtn" class="secondary">
-    Reset View
-  </button>
-
+  <button id="heatBtn">Heat Map</button>
+  <button id="resetBtn" class="secondary">Reset View</button>
 </div>
 
 <div id="coordsBox">
@@ -199,8 +174,7 @@ button{
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <script>
 /* =========================
@@ -223,7 +197,6 @@ const map = L.map("map", {
 const gridLayer = L.layerGroup().addTo(map);
 
 function drawGrid() {
-
   gridLayer.clearLayers();
 
   const zoom = map.getZoom();
@@ -244,7 +217,6 @@ function drawGrid() {
   const maxY = Math.ceil(bounds.getNorth() / size) * size;
 
   for (let x = minX; x <= maxX; x += size) {
-
     L.polyline(
       [
         [minY, x],
@@ -259,7 +231,6 @@ function drawGrid() {
   }
 
   for (let y = minY; y <= maxY; y += size) {
-
     L.polyline(
       [
         [y, minX],
@@ -281,15 +252,10 @@ drawGrid();
    STORAGE
 ========================= */
 
-const knownPlayers =
-  JSON.parse(localStorage.getItem("knownPlayers") || "{}");
+const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
 
 function savePlayers() {
-
-  localStorage.setItem(
-    "knownPlayers",
-    JSON.stringify(knownPlayers)
-  );
+  localStorage.setItem("knownPlayers", JSON.stringify(knownPlayers));
 }
 
 /* =========================
@@ -299,22 +265,49 @@ function savePlayers() {
 const markers = {};
 const locationData = {};
 const hotspotMarkers = [];
+
 let heatEnabled = false;
-  let firstPlayer = true;
+let firstPlayer = true;
 
 /* =========================
    HELPERS
 ========================= */
 
 function copy(text) {
-
   navigator.clipboard.writeText(text);
 }
 
 function updateCoordsBox(latlng) {
-
   document.getElementById("coordsBox").innerText =
     `X: ${Math.floor(latlng.lng)} | Z: ${Math.floor(-latlng.lat)}`;
+}
+
+function addPlayerHistory(player, x, y, z) {
+  if (!player.history) {
+    player.history = [];
+  }
+
+  const last = player.history[player.history.length - 1];
+
+  if (
+    last &&
+    last.x === x &&
+    last.y === y &&
+    last.z === z
+  ) {
+    return;
+  }
+
+  player.history.push({
+    x,
+    y,
+    z,
+    time: Date.now()
+  });
+
+  if (player.history.length > 500) {
+    player.history.shift();
+  }
 }
 
 map.on("mousemove", e => {
@@ -326,55 +319,52 @@ map.on("mousemove", e => {
 ========================= */
 
 function getLikelyHome(history) {
-
-  if (!history || history.length < 5)
+  if (!history || history.length < 5) {
     return null;
+  }
 
   const teleports = {};
 
   for (let i = 1; i < history.length; i++) {
-
     const prev = history[i - 1];
     const curr = history[i];
 
     const distance = Math.hypot(
-      curr.lng - prev.lng,
-      curr.lat - prev.lat
+      curr.x - prev.x,
+      curr.z - prev.z
     );
 
-    if (distance < 500)
+    if (distance < 500) {
       continue;
+    }
 
-    const x = Math.round(curr.lng / 50) * 50;
-    const z = Math.round(curr.lat / 50) * 50;
+    const x = Math.round(curr.x / 50) * 50;
+    const z = Math.round(curr.z / 50) * 50;
 
     const key = `${x}:${z}`;
 
-    teleports[key] =
-      (teleports[key] || 0) + 1;
+    teleports[key] = (teleports[key] || 0) + 1;
   }
 
   let bestKey = null;
   let bestCount = 0;
 
   for (const key in teleports) {
-
     if (teleports[key] > bestCount) {
-
       bestCount = teleports[key];
       bestKey = key;
     }
   }
 
-  if (!bestKey)
+  if (!bestKey) {
     return null;
+  }
 
-  const [x, z] =
-    bestKey.split(":").map(Number);
+  const parts = bestKey.split(":").map(Number);
 
   return {
-    x,
-    z: -z,
+    x: parts[0],
+    z: parts[1],
     teleports: bestCount
   };
 }
@@ -383,53 +373,48 @@ function getLikelyHome(history) {
    HEAT INSPECTOR
 ========================= */
 
-function clearHotspots(){
-
-  hotspotMarkers.forEach(marker=>{
+function clearHotspots() {
+  hotspotMarkers.forEach(marker => {
     map.removeLayer(marker);
   });
 
   hotspotMarkers.length = 0;
 }
 
-function buildHeatInspector(){
-
+function buildHeatInspector() {
   clearHotspots();
 
-  Object.entries(locationData).forEach(([key, players])=>{
-
-    const [x,z] = key.split(":").map(Number);
+  Object.entries(locationData).forEach(([key, players]) => {
+    const parts = key.split(":").map(Number);
+    const x = parts[0];
+    const z = parts[1];
 
     const marker = L.circle(
-  [-z,x],
-  {
-    radius:1000,
-    color:"yellow",
-    fillColor:"yellow",
-    fillOpacity:0.7
-  }
-).addTo(map);
+      [-z, x],
+      {
+        radius: 1000,
+        color: "yellow",
+        fillColor: "yellow",
+        fillOpacity: 0.7
+      }
+    ).addTo(map);
 
-    marker.on("click",()=>{
-
+    marker.on("click", () => {
       let html = "<h3>Players Seen Here</h3>";
 
-      Object.entries(players).forEach(([name, info])=>{
+      Object.entries(players).forEach(([name, info]) => {
+        const avgY = Math.round(
+          info.yValues.reduce((a, b) => a + b, 0) / info.yValues.length
+        );
 
-  const avgY =
-    Math.round(
-      info.yValues.reduce((a,b)=>a+b,0) /
-      info.yValues.length
-    );
-
-  html += `
-    <b>${name}</b><br>
-    Avg Y: ${avgY}<br><br>
-  `;
-});
+        html += `
+          <b>${name}</b><br>
+          Avg Y: ${avgY}<br><br>
+        `;
+      });
 
       L.popup()
-        .setLatLng([-z,x])
+        .setLatLng([-z, x])
         .setContent(html)
         .openOn(map);
     });
@@ -438,46 +423,34 @@ function buildHeatInspector(){
   });
 }
 
-
-  
 /* =========================
    BUTTONS
 ========================= */
 
-document.getElementById("heatBtn")
-  .onclick = () => {
+document.getElementById("heatBtn").onclick = () => {
+  heatEnabled = !heatEnabled;
 
-    heatEnabled = !heatEnabled;
+  if (heatEnabled) {
+    buildHeatInspector();
+  } else {
+    clearHotspots();
+  }
+};
 
-    if (heatEnabled) {
-      buildHeatInspector();
-    } else {
-      clearHotspots();
-    }
-  };
-
-document.getElementById("resetBtn")
-  .onclick = () => {
-
-map.setView([0,0],-0);
-  };
+document.getElementById("resetBtn").onclick = () => {
+  map.setView([0, 0], 0);
+};
 
 /* =========================
    PLAYER FETCH
 ========================= */
 
 async function loadPlayers() {
-
   try {
-
-    const response = await fetch(
-      "https://factions-map.onrender.com/players"
-    );
+    const response = await fetch("https://factions-map.onrender.com/players");
 
     if (!response.ok) {
-      throw new Error(
-        "HTTP " + response.status
-      );
+      throw new Error("HTTP " + response.status);
     }
 
     const data = await response.json();
@@ -489,137 +462,120 @@ async function loadPlayers() {
       return;
     }
 
-    const online = {};
     Object.keys(knownPlayers).forEach(name => {
-  knownPlayers[name].online = false;
-});
+      knownPlayers[name].online = false;
+    });
 
-data.players.forEach(playerData => {
+    data.players.forEach(playerData => {
+      const x = Math.floor(playerData.Pose.Head.Position[0]);
+      const y = Math.floor(playerData.Pose.Head.Position[1]);
+      const z = Math.floor(playerData.Pose.Head.Position[2]);
 
-  const x = Math.floor(playerData.Pose.Head.Position[0]);
-  const y = Math.floor(playerData.Pose.Head.Position[1]);
-  const z = Math.floor(playerData.Pose.Head.Position[2]);
+      const lat = -z;
+      const lng = x;
 
-  online[playerData.Username] = true;
-
-
-  const lat = -z;
-  const lng = x;
-
-  if(firstPlayer){
-    map.setView([lat,lng],2);
-    firstPlayer = false;
-  }
-
-  if(!knownPlayers[playerData.Username]){
-    knownPlayers[playerData.Username] = {
-      history:[]
-    };
-  }
-
-  const player = knownPlayers[playerData.Username];
-
-  player.x = x;
-  player.y = y;
-  player.z = z;
-  player.lat = lat;
-  player.lng = lng;
-  player.online = true;
-
-  const key =
-    Math.round(x/250)*250 +
-    ":" +
-    Math.round(z/250)*250;
-
- locationData[key] ??= {};
-
-locationData[key][playerData.Username] ??= {
-  firstSeen: Date.now(),
-  lastSeen: Date.now(),
-  yValues: []
-};
-
-const spot = locationData[key][playerData.Username];
-
-spot.lastSeen = Date.now();
-spot.yValues.push(y);
-
-  if (!markers[playerData.Username]) {
-
-    markers[playerData.Username] =
-      L.circleMarker([lat,lng],{
-        radius:8,
-        color:"#ff3b3b",
-        fillColor:"#ff3b3b",
-        fillOpacity:1
-      }).addTo(map);
-
-    markers[playerData.Username].bindTooltip(
-      playerData.Username,
-      {
-        permanent:true,
-        direction:"top"
+      if (firstPlayer) {
+        map.setView([lat, lng], 2);
+        firstPlayer = false;
       }
-    );
 
-  } else {
+      if (!knownPlayers[playerData.Username]) {
+        knownPlayers[playerData.Username] = {
+          history: []
+        };
+      }
 
-    markers[playerData.Username]
-      .setLatLng([lat,lng]);
+      const player = knownPlayers[playerData.Username];
+
+      player.x = x;
+      player.y = y;
+      player.z = z;
+      player.lat = lat;
+      player.lng = lng;
+      player.online = true;
+
+      addPlayerHistory(player, x, y, z);
+
+      const key =
+        Math.round(x / 250) * 250 +
+        ":" +
+        Math.round(z / 250) * 250;
+
+      locationData[key] ??= {};
+
+      locationData[key][playerData.Username] ??= {
+        firstSeen: Date.now(),
+        lastSeen: Date.now(),
+        yValues: []
+      };
+
+      const spot = locationData[key][playerData.Username];
+
+      spot.lastSeen = Date.now();
+      spot.yValues.push(y);
+
+      if (!markers[playerData.Username]) {
+        markers[playerData.Username] =
+          L.circleMarker([lat, lng], {
+            radius: 8,
+            color: "#ff3b3b",
+            fillColor: "#ff3b3b",
+            fillOpacity: 1
+          }).addTo(map);
+
+        markers[playerData.Username].bindTooltip(
+          playerData.Username,
+          {
+            permanent: true,
+            direction: "top"
+          }
+        );
+      } else {
+        markers[playerData.Username].setLatLng([lat, lng]);
+      }
+    });
+
+    savePlayers();
+    renderPlayers();
+
+    if (heatEnabled) {
+      buildHeatInspector();
+    }
+  } catch (err) {
+    document.getElementById("players").innerHTML =
+      `<div style="padding:15px;color:red">
+        API ERROR<br><br>
+        ${err.message}
+      </div>`;
+
+    console.error(err);
   }
-
-});
+}
 
 /* =========================
    PLAYER LIST
 ========================= */
 
-renderPlayers();
-} catch(err) {
+function renderPlayers() {
+  const container = document.getElementById("players");
 
-  document.getElementById("players").innerHTML =
-  `<div style="padding:15px;color:red">
-     API ERROR<br><br>
-     ${err.message}
-   </div>`;
-
-  console.error(err);
-}
-
-}
-    function renderPlayers() {
-
-  const container =
-    document.getElementById("players");
-
-  const search =
-    document.getElementById("search")
-      .value
-      .toLowerCase();
+  const search = document.getElementById("search")
+    .value
+    .toLowerCase();
 
   container.innerHTML = "";
 
-  const players =
-    Object.entries(knownPlayers)
-      .sort(
-        (a, b) =>
-          b[1].online - a[1].online
-      );
+  const players = Object.entries(knownPlayers)
+    .sort((a, b) => b[1].online - a[1].online);
 
   players.forEach(([name, player]) => {
-
-    if (
-      !name.toLowerCase()
-        .includes(search)
-    ) {
+    if (!name.toLowerCase().includes(search)) {
       return;
     }
 
-    const home =
-      getLikelyHome(player.history);
+    const home = getLikelyHome(player.history);
 
-    const div =
-      document.createElement("div");
+    const div = document.createElement("div");
 
     div.className = "player";
 
@@ -663,39 +619,26 @@ renderPlayers();
       </div>
     `;
 
-    div.querySelector(".tp")
-      .onclick = () => {
+    div.querySelector(".tp").onclick = () => {
+      copy(`${player.x} ${player.y} ${player.z}`);
+    };
 
-        copy(
-          `${player.x} ${player.y} ${player.z}`
-        );
-      };
+    div.querySelector(".homeBtn").onclick = () => {
+      if (!home) return;
 
-    div.querySelector(".homeBtn")
-      .onclick = () => {
+      copy(`${home.x} ${home.z}`);
+    };
 
-        if (!home) return;
+    div.querySelector(".view").onclick = () => {
+      if (
+        player.lat === undefined ||
+        player.lng === undefined
+      ) {
+        return;
+      }
 
-        copy(
-          `${home.x} ${home.z}`
-        );
-      };
-
-    div.querySelector(".view")
-      .onclick = () => {
-
-        if (
-          player.lat === undefined ||
-          player.lng === undefined
-        ) {
-          return;
-        }
-
-        map.setView(
-          [player.lat, player.lng],
-          4
-        );
-      };
+      map.setView([player.lat, player.lng], 4);
+    };
 
     container.appendChild(div);
   });
@@ -705,11 +648,10 @@ renderPlayers();
    SEARCH
 ========================= */
 
-document.getElementById("search")
-  .addEventListener(
-    "input",
-    renderPlayers
-  );
+document.getElementById("search").addEventListener(
+  "input",
+  renderPlayers
+);
 
 /* =========================
    START
@@ -722,6 +664,5 @@ setInterval(
   3000
 );
 </script>
-
 </body>
 </html>
