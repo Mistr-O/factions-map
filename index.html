@@ -17,7 +17,9 @@
   --text: #f5f5f6;
   --muted: #a0a0a8;
   --red: #ff3f3f;
+  --blue: #45a3ff;
   --green: #58ff86;
+  --yellow: #ffe15a;
 }
 
 html,
@@ -351,7 +353,7 @@ button {
         <div id="title">FactionsVR</div>
         <div id="livePill">LIVE</div>
       </div>
-      <div id="subtitle">Player tracker and saved heat map</div>
+      <div id="subtitle">Player tracker with head and hands</div>
     </div>
 
     <div id="stats">
@@ -398,7 +400,7 @@ const PASSWORD = "6768";
 
 const knownPlayers = JSON.parse(localStorage.getItem("knownPlayers") || "{}");
 
-const markers = {};
+const playerParts = {};
 const hotspotMarkers = [];
 
 let gameMap = null;
@@ -478,6 +480,103 @@ function parseKey(key) {
 function updateCoordsBox(latlng) {
   document.getElementById("coordsBox").innerText =
     `X: ${Math.floor(latlng.lng)} | Z: ${Math.floor(-latlng.lat)}`;
+}
+
+function getPositionFromPart(part) {
+  if (!part) {
+    return null;
+  }
+
+  if (Array.isArray(part.Position)) {
+    return part.Position;
+  }
+
+  if (Array.isArray(part.position)) {
+    return part.position;
+  }
+
+  if (part.Transform && Array.isArray(part.Transform.Position)) {
+    return part.Transform.Position;
+  }
+
+  if (part.transform && Array.isArray(part.transform.position)) {
+    return part.transform.position;
+  }
+
+  return null;
+}
+
+function getPosePart(pose, names) {
+  if (!pose) {
+    return null;
+  }
+
+  for (const name of names) {
+    if (pose[name]) {
+      const position = getPositionFromPart(pose[name]);
+
+      if (position) {
+        return position;
+      }
+    }
+  }
+
+  return null;
+}
+
+function pointFromPosition(position) {
+  if (!Array.isArray(position) || position.length < 3) {
+    return null;
+  }
+
+  return {
+    x: Math.floor(position[0]),
+    y: Math.floor(position[1]),
+    z: Math.floor(position[2]),
+    lat: -Math.floor(position[2]),
+    lng: Math.floor(position[0])
+  };
+}
+
+function getPlayerBody(playerData) {
+  const pose = playerData.Pose || playerData.pose;
+
+  const headPosition = getPosePart(pose, [
+    "Head",
+    "head",
+    "HMD",
+    "hmd",
+    "Camera",
+    "camera"
+  ]);
+
+  const leftHandPosition = getPosePart(pose, [
+    "LeftHand",
+    "leftHand",
+    "LeftController",
+    "leftController",
+    "Left",
+    "left",
+    "LHand",
+    "lHand"
+  ]);
+
+  const rightHandPosition = getPosePart(pose, [
+    "RightHand",
+    "rightHand",
+    "RightController",
+    "rightController",
+    "Right",
+    "right",
+    "RHand",
+    "rHand"
+  ]);
+
+  return {
+    head: pointFromPosition(headPosition),
+    leftHand: pointFromPosition(leftHandPosition),
+    rightHand: pointFromPosition(rightHandPosition)
+  };
 }
 
 function getAllHistoryPoints() {
@@ -637,6 +736,126 @@ function drawGrid() {
         interactive: false
       }
     ).addTo(gridLayer);
+  }
+}
+
+/* =========================
+   HEAD AND HAND MARKERS
+========================= */
+
+function createBodyMarker(point, color, radius, label) {
+  const marker = L.circleMarker(
+    [point.lat, point.lng],
+    {
+      radius,
+      color,
+      fillColor: color,
+      fillOpacity: 1,
+      weight: 2
+    }
+  ).addTo(gameMap);
+
+  marker.bindTooltip(
+    label,
+    {
+      permanent: true,
+      direction: "top"
+    }
+  );
+
+  return marker;
+}
+
+function updatePlayerBody(username, body) {
+  if (!body.head) {
+    return;
+  }
+
+  if (!playerParts[username]) {
+    playerParts[username] = {
+      head: null,
+      leftHand: null,
+      rightHand: null,
+      leftLine: null,
+      rightLine: null
+    };
+  }
+
+  const parts = playerParts[username];
+
+  if (!parts.head) {
+    parts.head = createBodyMarker(
+      body.head,
+      "#ff3f3f",
+      8,
+      escapeHTML(username) + " Head"
+    );
+  } else {
+    parts.head.setLatLng([body.head.lat, body.head.lng]);
+  }
+
+  if (body.leftHand) {
+    if (!parts.leftHand) {
+      parts.leftHand = createBodyMarker(
+        body.leftHand,
+        "#45a3ff",
+        6,
+        escapeHTML(username) + " L"
+      );
+    } else {
+      parts.leftHand.setLatLng([body.leftHand.lat, body.leftHand.lng]);
+    }
+
+    if (!parts.leftLine) {
+      parts.leftLine = L.polyline(
+        [
+          [body.head.lat, body.head.lng],
+          [body.leftHand.lat, body.leftHand.lng]
+        ],
+        {
+          color: "rgba(69, 163, 255, 0.55)",
+          weight: 2,
+          interactive: false
+        }
+      ).addTo(gameMap);
+    } else {
+      parts.leftLine.setLatLngs([
+        [body.head.lat, body.head.lng],
+        [body.leftHand.lat, body.leftHand.lng]
+      ]);
+    }
+  }
+
+  if (body.rightHand) {
+    if (!parts.rightHand) {
+      parts.rightHand = createBodyMarker(
+        body.rightHand,
+        "#ffe15a",
+        6,
+        escapeHTML(username) + " R"
+      );
+    } else {
+      parts.rightHand.setLatLng([body.rightHand.lat, body.rightHand.lng]);
+    }
+
+    if (!parts.rightLine) {
+      parts.rightLine = L.polyline(
+        [
+          [body.head.lat, body.head.lng],
+          [body.rightHand.lat, body.rightHand.lng]
+        ],
+        {
+          color: "rgba(255, 225, 90, 0.55)",
+          weight: 2,
+          interactive: false
+        }
+      ).addTo(gameMap);
+    } else {
+      parts.rightLine.setLatLngs([
+        [body.head.lat, body.head.lng],
+        [body.rightHand.lat, body.rightHand.lng]
+      ]);
+    }
   }
 }
 
@@ -892,23 +1111,24 @@ async function loadPlayers() {
     });
 
     data.players.forEach(playerData => {
-      if (
-        !playerData.Username ||
-        !playerData.Pose ||
-        !playerData.Pose.Head ||
-        !playerData.Pose.Head.Position
-      ) {
+      const username = playerData.Username;
+
+      if (!username) {
         return;
       }
 
-      const username = playerData.Username;
+      const body = getPlayerBody(playerData);
 
-      const x = Math.floor(playerData.Pose.Head.Position[0]);
-      const y = Math.floor(playerData.Pose.Head.Position[1]);
-      const z = Math.floor(playerData.Pose.Head.Position[2]);
+      if (!body.head) {
+        console.log("No head position found for", username, playerData);
+        return;
+      }
 
-      const lat = -z;
-      const lng = x;
+      const x = body.head.x;
+      const y = body.head.y;
+      const z = body.head.z;
+      const lat = body.head.lat;
+      const lng = body.head.lng;
 
       if (firstPlayer) {
         gameMap.setView([lat, lng], 2);
@@ -930,29 +1150,19 @@ async function loadPlayers() {
       player.lng = lng;
       player.online = true;
       player.lastSeen = Date.now();
+      player.hasLeftHand = !!body.leftHand;
+      player.hasRightHand = !!body.rightHand;
+
+      if (body.leftHand) {
+        player.leftHand = body.leftHand;
+      }
+
+      if (body.rightHand) {
+        player.rightHand = body.rightHand;
+      }
 
       addPlayerHistory(player, x, y, z);
-
-      if (!markers[username]) {
-        markers[username] =
-          L.circleMarker([lat, lng], {
-            radius: 8,
-            color: "#ff3f3f",
-            fillColor: "#ff3f3f",
-            fillOpacity: 1,
-            weight: 2
-          }).addTo(gameMap);
-
-        markers[username].bindTooltip(
-          escapeHTML(username),
-          {
-            permanent: true,
-            direction: "top"
-          }
-        );
-      } else {
-        markers[username].setLatLng([lat, lng]);
-      }
+      updatePlayerBody(username, body);
     });
 
     savePlayers();
@@ -1020,9 +1230,11 @@ function renderPlayers() {
       </div>
 
       <div class="coords">
-        X: ${player.x ?? "?"}<br>
-        Y: ${player.y ?? "?"}<br>
-        Z: ${player.z ?? "?"}<br>
+        Head X: ${player.x ?? "?"}<br>
+        Head Y: ${player.y ?? "?"}<br>
+        Head Z: ${player.z ?? "?"}<br>
+        Left hand: ${player.hasLeftHand ? "YES" : "NO"}<br>
+        Right hand: ${player.hasRightHand ? "YES" : "NO"}<br>
         Saved points: ${
           Array.isArray(player.history)
             ? player.history.length
