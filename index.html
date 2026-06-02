@@ -497,11 +497,11 @@ async function loadPlayers() {
   const y = Math.floor(playerData.Pose.Head.Position[1]);
   const z = Math.floor(playerData.Pose.Head.Position[2]);
     online[playerData.Username] = true;
-Object.keys(knownPlayers).forEach(name => {
   if (!online[name]) {
     knownPlayers[name].online = false;
   }
 });
+    Object.keys(knownPlayers).forEach(name => {
 
 
   const lat = -z;
