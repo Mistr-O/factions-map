@@ -319,7 +319,7 @@ button {
 
 .mapTile {
   image-rendering: pixelated;
-  background: #151515;
+  background: #050505;
 }
 
 .cubeIcon {
@@ -817,14 +817,14 @@ function setupTileLayer() {
 
     const chunkX = coords.x;
     const chunkY = coords.y;
-    const chunkZoom = 1;
+    const chunkZoom = coords.z;
 
     tile.onload = function() {
       done(null, tile);
     };
 
     tile.onerror = function() {
-      tile.style.background = "#151515";
+      tile.style.background = "#050505";
       done(null, tile);
     };
 
