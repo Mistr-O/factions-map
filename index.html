@@ -1302,7 +1302,7 @@ async function loadPlayers() {
   const seenNames = new Set();
 
   try {
-    const response = await fetch("https://factions-map.onrender.com/players");
+const response = await fetch("https://factionsvr.com/api/map/players");
 
     if (!response.ok) {
       throw new Error("HTTP " + response.status);
