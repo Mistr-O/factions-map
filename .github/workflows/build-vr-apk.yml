@@ -9,6 +9,10 @@ on:
       - '.github/workflows/build-vr-apk.yml'
   workflow_dispatch:
 
+concurrency:
+  group: vradb-terminal-build
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
