@@ -18,39 +18,33 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
+        with:
+          packages: platform-tools
       - name: Install Android platform and build tools
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
       - name: Build debug APK
         run: gradle --no-daemon --stacktrace -p QuestShellAPK :app:assembleDebug
-
       - name: Name APK for easy download
         run: cp QuestShellAPK/app/build/outputs/apk/debug/app-debug.apk QuestShellAPK/VR-ADB-Terminal.apk
-
       - name: Upload APK build artifact
         uses: actions/upload-artifact@v4
         with:
           name: VR-ADB-Terminal-APK
           path: QuestShellAPK/VR-ADB-Terminal.apk
           if-no-files-found: error
-
       - name: Publish APK download
         uses: softprops/action-gh-release@v2
         with:
@@ -58,9 +52,8 @@ jobs:
           target_commitish: vr-adb-terminal-build
           name: VR ADB Terminal APK
           body: |
-            Debug-signed Android APK intended for sideloading to a Meta Quest headset.
-            Install and start Shizuku first, then grant VR ADB Terminal permission.
-            It runs local Android shell commands, not desktop ADB host commands.
+            Wireless Debugging ADB-pairing version for Meta Quest 2 / Pro / 3 / 3S.
+            Open as a 2D window, pair via the on-headset pairing code, auto-connect and run shell commands.
           prerelease: true
           make_latest: false
           files: QuestShellAPK/VR-ADB-Terminal.apk
