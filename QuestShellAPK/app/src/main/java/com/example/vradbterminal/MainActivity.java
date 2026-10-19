@@ -339,7 +339,7 @@ public class MainActivity extends Activity {
             try {
                 AbsAdbConnectionManager manager = AdbConnectionManager.getInstance(getApplicationContext());
                 StringBuilder data = new StringBuilder();
-                try (AdbStream stream = manager.openStream(LocalServices.SHELL + actual)) {
+                try (AdbStream stream = manager.openStream(LocalServices.SHELL, actual)) {
                     InputStream input = stream.openInputStream();
                     byte[] buffer = new byte[4096];
                     int count;
