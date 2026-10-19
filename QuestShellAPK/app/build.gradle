@@ -10,8 +10,8 @@ android {
         applicationId 'com.example.vradbterminal'
         minSdk 29
         targetSdk 32
-        versionCode 3
-        versionName '2.0-wireless-adb'
+        versionCode 4
+        versionName '2.0.1-wireless-adb'
     }
 
     buildFeatures {
